@@ -1,18 +1,21 @@
-// Copyright (c) 2014-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <qt/winshutdownmonitor.h>
+#include "winshutdownmonitor.h"
 
-#if defined(Q_OS_WIN)
-#include <shutdown.h>
-#include <util.h>
+#if defined(Q_OS_WIN) && QT_VERSION >= 0x050000
+#include "init.h"
+#include "util.h"
 
 #include <windows.h>
 
-#include <QDebug>
-
 #include <openssl/rand.h>
+
+#include <QDebug>
 
 // If we don't want a message to be processed by Qt, return true and set result to
 // the value that the window procedure should return. Otherwise return false.
@@ -57,7 +60,7 @@ void WinShutdownMonitor::registerShutdownBlockReason(const QString& strReason, c
 {
     typedef BOOL (WINAPI *PSHUTDOWNBRCREATE)(HWND, LPCWSTR);
     PSHUTDOWNBRCREATE shutdownBRCreate = (PSHUTDOWNBRCREATE)GetProcAddress(GetModuleHandleA("User32.dll"), "ShutdownBlockReasonCreate");
-    if (shutdownBRCreate == nullptr) {
+    if (shutdownBRCreate == NULL) {
         qWarning() << "registerShutdownBlockReason: GetProcAddress for ShutdownBlockReasonCreate failed";
         return;
     }

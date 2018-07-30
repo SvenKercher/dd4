@@ -1,9 +1,12 @@
-// Copyright (c) 2014 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_QT_NETWORKSTYLE_H
-#define BITCOIN_QT_NETWORKSTYLE_H
+#ifndef DYNAMIC_QT_NETWORKSTYLE_H
+#define DYNAMIC_QT_NETWORKSTYLE_H
 
 #include <QIcon>
 #include <QPixmap>
@@ -18,6 +21,7 @@ public:
 
     const QString &getAppName() const { return appName; }
     const QIcon &getAppIcon() const { return appIcon; }
+    const QPixmap &getSplashImage() const { return splashImage; }
     const QIcon &getTrayAndWindowIcon() const { return trayAndWindowIcon; }
     const QString &getTitleAddText() const { return titleAddText; }
 
@@ -26,8 +30,11 @@ private:
 
     QString appName;
     QIcon appIcon;
+    QPixmap splashImage;
     QIcon trayAndWindowIcon;
     QString titleAddText;
+
+    void rotateColors(QImage& img, const int iconColorHueShift, const int iconColorSaturationReduction);
 };
 
-#endif // BITCOIN_QT_NETWORKSTYLE_H
+#endif // DYNAMIC_QT_NETWORKSTYLE_H

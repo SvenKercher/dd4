@@ -1,15 +1,20 @@
-// Copyright (c) 2011-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_QT_RECENTREQUESTSTABLEMODEL_H
-#define BITCOIN_QT_RECENTREQUESTSTABLEMODEL_H
+#ifndef DYNAMIC_QT_RECENTREQUESTSTABLEMODEL_H
+#define DYNAMIC_QT_RECENTREQUESTSTABLEMODEL_H
 
-#include <qt/walletmodel.h>
+#include "walletmodel.h"
 
 #include <QAbstractTableModel>
-#include <QStringList>
 #include <QDateTime>
+#include <QStringList>
+
+class CWallet;
 
 class RecentRequestEntry
 {
@@ -50,7 +55,7 @@ private:
     Qt::SortOrder order;
 };
 
-/** Model for list of recently generated payment requests / bitcoin: URIs.
+/** Model for list of recently generated payment requests / dynamic: URIs.
  * Part of wallet model.
  */
 class RecentRequestsTableModel: public QAbstractTableModel
@@ -58,14 +63,15 @@ class RecentRequestsTableModel: public QAbstractTableModel
     Q_OBJECT
 
 public:
-    explicit RecentRequestsTableModel(WalletModel *parent);
+    explicit RecentRequestsTableModel(CWallet *wallet, WalletModel *parent);
     ~RecentRequestsTableModel();
 
     enum ColumnIndex {
         Date = 0,
-        Label = 1,
-        Message = 2,
-        Amount = 3,
+        Address = 1,
+        Label = 2,
+        Message = 3,
+        Amount = 4,
         NUMBER_OF_COLUMNS
     };
 
@@ -102,4 +108,4 @@ private:
     QString getAmountTitle();
 };
 
-#endif // BITCOIN_QT_RECENTREQUESTSTABLEMODEL_H
+#endif // DYNAMIC_QT_RECENTREQUESTSTABLEMODEL_H

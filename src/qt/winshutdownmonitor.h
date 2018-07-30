@@ -1,14 +1,18 @@
-// Copyright (c) 2014 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_QT_WINSHUTDOWNMONITOR_H
-#define BITCOIN_QT_WINSHUTDOWNMONITOR_H
+#ifndef DYNAMIC_QT_WINSHUTDOWNMONITOR_H
+#define DYNAMIC_QT_WINSHUTDOWNMONITOR_H
 
 #ifdef WIN32
 #include <QByteArray>
 #include <QString>
 
+#if QT_VERSION >= 0x050000
 #include <windef.h> // for HWND
 
 #include <QAbstractNativeEventFilter>
@@ -23,5 +27,6 @@ public:
     static void registerShutdownBlockReason(const QString& strReason, const HWND& mainWinId);
 };
 #endif
+#endif
 
-#endif // BITCOIN_QT_WINSHUTDOWNMONITOR_H
+#endif // DYNAMIC_QT_WINSHUTDOWNMONITOR_H

@@ -1,14 +1,16 @@
-// Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_SUPPORT_CLEANSE_H
-#define BITCOIN_SUPPORT_CLEANSE_H
+#ifndef DYNAMIC_SUPPORT_CLEANSE_H
+#define DYNAMIC_SUPPORT_CLEANSE_H
 
 #include <stdlib.h>
 
 // Attempt to overwrite data in the specified memory span.
 void memory_cleanse(void *ptr, size_t len);
 
-#endif // BITCOIN_SUPPORT_CLEANSE_H
+#endif // DYNAMIC_SUPPORT_CLEANSE_H

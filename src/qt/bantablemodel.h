@@ -1,23 +1,20 @@
-// Copyright (c) 2011-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_QT_BANTABLEMODEL_H
-#define BITCOIN_QT_BANTABLEMODEL_H
+#ifndef DYNAMIC_QT_BANTABLEMODEL_H
+#define DYNAMIC_QT_BANTABLEMODEL_H
 
-#include <net.h>
-
-#include <memory>
+#include "net.h"
 
 #include <QAbstractTableModel>
 #include <QStringList>
 
-class ClientModel;
 class BanTablePriv;
-
-namespace interfaces {
-    class Node;
-}
+class ClientModel;
 
 struct CCombinedBan {
     CSubNet subnet;
@@ -45,7 +42,7 @@ class BanTableModel : public QAbstractTableModel
     Q_OBJECT
 
 public:
-    explicit BanTableModel(interfaces::Node& node, ClientModel *parent = 0);
+    explicit BanTableModel(ClientModel *parent = 0);
     ~BanTableModel();
     void startAutoRefresh();
     void stopAutoRefresh();
@@ -71,10 +68,9 @@ public Q_SLOTS:
     void refresh();
 
 private:
-    interfaces::Node& m_node;
     ClientModel *clientModel;
     QStringList columns;
     std::unique_ptr<BanTablePriv> priv;
 };
 
-#endif // BITCOIN_QT_BANTABLEMODEL_H
+#endif // DYNAMIC_QT_BANTABLEMODEL_H

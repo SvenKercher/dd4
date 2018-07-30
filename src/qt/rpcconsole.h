@@ -1,54 +1,46 @@
-// Copyright (c) 2011-2017 The Bitcoin Core developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_QT_RPCCONSOLE_H
-#define BITCOIN_QT_RPCCONSOLE_H
+#ifndef DYNAMIC_QT_RPCCONSOLE_H
+#define DYNAMIC_QT_RPCCONSOLE_H
 
-#include <qt/guiutil.h>
-#include <qt/peertablemodel.h>
+#include "guiutil.h"
+#include "peertablemodel.h"
+#include "trafficgraphdata.h"
 
-#include <net.h>
+#include "net.h"
 
-#include <QWidget>
 #include <QCompleter>
+#include <QDialog>
 #include <QThread>
 
 class ClientModel;
 class PlatformStyle;
 class RPCTimerInterface;
-class WalletModel;
-
-namespace interfaces {
-    class Node;
-}
 
 namespace Ui {
     class RPCConsole;
 }
 
 QT_BEGIN_NAMESPACE
-class QMenu;
 class QItemSelection;
 QT_END_NAMESPACE
 
-/** Local Bitcoin RPC console. */
-class RPCConsole: public QWidget
+/** Local Dynamic RPC console. */
+class RPCConsole: public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit RPCConsole(interfaces::Node& node, const PlatformStyle *platformStyle, QWidget *parent);
+    explicit RPCConsole(QWidget *parent);
     ~RPCConsole();
 
-    static bool RPCParseCommandLine(interfaces::Node* node, std::string &strResult, const std::string &strCommand, bool fExecute, std::string * const pstrFilteredOut = nullptr, const std::string *walletID = nullptr);
-    static bool RPCExecuteCommandLine(interfaces::Node& node, std::string &strResult, const std::string &strCommand, std::string * const pstrFilteredOut = nullptr, const std::string *walletID = nullptr) {
-        return RPCParseCommandLine(&node, strResult, strCommand, true, pstrFilteredOut, walletID);
-    }
+    static bool RPCExecuteCommandLine(std::string &strResult, const std::string &strCommand);
 
     void setClientModel(ClientModel *model);
-    void addWallet(WalletModel * const walletModel);
-    void removeWallet(WalletModel* const walletModel);
 
     enum MessageClass {
         MC_ERROR,
@@ -62,7 +54,8 @@ public:
         TAB_INFO = 0,
         TAB_CONSOLE = 1,
         TAB_GRAPH = 2,
-        TAB_PEERS = 3
+        TAB_PEERS = 3,
+        TAB_REPAIR = 4
     };
 
 protected:
@@ -95,16 +88,22 @@ public Q_SLOTS:
     void fontBigger();
     void fontSmaller();
     void setFontSize(int newSize);
-    /** Append the message to the message widget */
+
+    /** Wallet repair options */
+    void walletSalvage();
+    void walletRescan();
+    void walletZaptxes1();
+    void walletZaptxes2();
+    void walletUpgrade();
+    void walletReindex();
+
     void message(int category, const QString &message, bool html = false);
     /** Set number of connections shown in the UI */
     void setNumConnections(int count);
-    /** Set network state shown in the UI */
-    void setNetworkActive(bool networkActive);
-    /** Set number of blocks and last block date shown in the UI */
+    /** Set number of Dynodes shown in the UI */        
+    void setDynodeCount(const QString &strDynodes);      
+    /** Set number of blocks shown in the UI */
     void setNumBlocks(int count, const QDateTime& blockDate, double nVerificationProgress, bool headers);
-    /** Set size (number of transactions and memory usage) of the mempool in the UI */
-    void setMempoolSize(long numberOfTxs, size_t dynUsage);
     /** Go forward or back in history */
     void browseHistory(int offset);
     /** Scroll console view to end */
@@ -115,6 +114,16 @@ public Q_SLOTS:
     void peerLayoutAboutToChange();
     /** Handle updated peer information */
     void peerLayoutChanged();
+    /** Switch to info tab and show */
+    void showInfo();
+    /** Switch to console tab and show */
+    void showConsole();
+    /** Switch to network tab and show */
+    void showNetwork();
+    /** Switch to peers tab and show */
+    void showPeers();
+    /** Switch to wallet-repair tab and show */
+    void showRepair();
     /** Disconnect a selected node on the Peers tab */
     void disconnectSelectedNode();
     /** Ban a selected node on the Peers tab */
@@ -123,46 +132,44 @@ public Q_SLOTS:
     void unbanSelectedNode();
     /** set which tab has the focus (is visible) */
     void setTabFocus(enum TabTypes tabType);
-
+    /** Set size (number of transactions and memory usage) of the mempool in the UI */
+    void setMempoolSize(long numberOfTxs, size_t dynUsage);
 Q_SIGNALS:
     // For RPC command executor
     void stopExecutor();
-    void cmdRequest(const QString &command, const QString &walletID);
+    void cmdRequest(const QString &command);
+    /** Get restart command-line parameters and handle restart */
+    void handleRestart(QStringList args);
 
 private:
+    static QString FormatBytes(quint64 bytes);
     void startExecutor();
-    void setTrafficGraphRange(int mins);
+    void setTrafficGraphRange(TrafficGraphData::GraphRange range);
+    /** Build parameter list for restart */
+    void buildParameterlist(QString arg);
     /** show detailed information on ui about selected node */
     void updateNodeDetail(const CNodeCombinedStats *stats);
 
     enum ColumnWidths
     {
         ADDRESS_COLUMN_WIDTH = 200,
-        SUBVERSION_COLUMN_WIDTH = 150,
+        SUBVERSION_COLUMN_WIDTH = 100,
         PING_COLUMN_WIDTH = 80,
         BANSUBNET_COLUMN_WIDTH = 200,
         BANTIME_COLUMN_WIDTH = 250
-
     };
 
-    interfaces::Node& m_node;
-    Ui::RPCConsole* const ui;
-    ClientModel *clientModel = nullptr;
+    Ui::RPCConsole *ui;
+    ClientModel *clientModel;
     QStringList history;
-    int historyPtr = 0;
-    QString cmdBeforeBrowsing;
+    int historyPtr;
     QList<NodeId> cachedNodeids;
-    const PlatformStyle* const platformStyle;
-    RPCTimerInterface *rpcTimerInterface = nullptr;
-    QMenu *peersTableContextMenu = nullptr;
-    QMenu *banTableContextMenu = nullptr;
-    int consoleFontSize = 0;
-    QCompleter *autoCompleter = nullptr;
+    RPCTimerInterface *rpcTimerInterface;      
+    QMenu *peersTableContextMenu;
+    QMenu *banTableContextMenu;
+    int consoleFontSize;
+    QCompleter *autoCompleter;
     QThread thread;
-    QString m_last_wallet_id;
-
-    /** Update UI with latest network info from model. */
-    void updateNetworkState();
 };
 
-#endif // BITCOIN_QT_RPCCONSOLE_H
+#endif // DYNAMIC_QT_RPCCONSOLE_H

@@ -1,29 +1,32 @@
-// Copyright (c) 2009-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_NETADDRESS_H
-#define BITCOIN_NETADDRESS_H
+#ifndef DYNAMIC_NETADDRESS_H
+#define DYNAMIC_NETADDRESS_H
 
 #if defined(HAVE_CONFIG_H)
-#include <config/bitcoin-config.h>
+#include "config/dynamic-config.h"
 #endif
 
-#include <compat.h>
-#include <serialize.h>
-#include <span.h>
+#include "compat.h"
+#include "serialize.h"
 
 #include <stdint.h>
 #include <string>
 #include <vector>
+
+extern bool fAllowPrivateNet;
 
 enum Network
 {
     NET_UNROUTABLE = 0,
     NET_IPV4,
     NET_IPV6,
-    NET_ONION,
-    NET_INTERNAL,
+    NET_TOR,
 
     NET_MAX,
 };
@@ -37,28 +40,21 @@ class CNetAddr
 
     public:
         CNetAddr();
-        explicit CNetAddr(const struct in_addr& ipv4Addr);
+        CNetAddr(const struct in_addr& ipv4Addr);
+        void Init();
         void SetIP(const CNetAddr& ip);
 
-    private:
         /**
          * Set raw IPv4 or IPv6 address (in network byte order)
          * @note Only NET_IPV4 and NET_IPV6 are allowed for network.
          */
         void SetRaw(Network network, const uint8_t *data);
 
-    public:
-        /**
-          * Transform an arbitrary string into a non-routable ipv6 address.
-          * Useful for mapping resolved addresses back to their source.
-         */
-        bool SetInternal(const std::string& name);
-
         bool SetSpecial(const std::string &strName); // for Tor addresses
         bool IsIPv4() const;    // IPv4 mapped address (::FFFF:0:0/96, 0.0.0.0/0)
         bool IsIPv6() const;    // IPv6 address (not mapped IPv4, not Tor)
         bool IsRFC1918() const; // IPv4 private networks (10.0.0.0/8, 192.168.0.0/16, 172.16.0.0/12)
-        bool IsRFC2544() const; // IPv4 inter-network communications (192.18.0.0/15)
+        bool IsRFC2544() const; // IPv4 inter-network communcations (192.18.0.0/15)
         bool IsRFC6598() const; // IPv4 ISP-level NAT (100.64.0.0/10)
         bool IsRFC5737() const; // IPv4 documentation addresses (192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24)
         bool IsRFC3849() const; // IPv6 documentation address (2001:0DB8::/32)
@@ -73,29 +69,29 @@ class CNetAddr
         bool IsTor() const;
         bool IsLocal() const;
         bool IsRoutable() const;
-        bool IsInternal() const;
         bool IsValid() const;
+        bool IsMulticast() const;
         enum Network GetNetwork() const;
         std::string ToString() const;
-        std::string ToStringIP() const;
+        std::string ToStringIP(bool fUseGetnameinfo = true) const;
         unsigned int GetByte(int n) const;
         uint64_t GetHash() const;
         bool GetInAddr(struct in_addr* pipv4Addr) const;
         std::vector<unsigned char> GetGroup() const;
-        int GetReachabilityFrom(const CNetAddr *paddrPartner = nullptr) const;
+        int GetReachabilityFrom(const CNetAddr *paddrPartner = NULL) const;
 
-        explicit CNetAddr(const struct in6_addr& pipv6Addr, const uint32_t scope = 0);
+        CNetAddr(const struct in6_addr& pipv6Addr, const uint32_t scope = 0);
         bool GetIn6Addr(struct in6_addr* pipv6Addr) const;
 
         friend bool operator==(const CNetAddr& a, const CNetAddr& b);
-        friend bool operator!=(const CNetAddr& a, const CNetAddr& b) { return !(a == b); }
+        friend bool operator!=(const CNetAddr& a, const CNetAddr& b);
         friend bool operator<(const CNetAddr& a, const CNetAddr& b);
 
         ADD_SERIALIZE_METHODS;
 
         template <typename Stream, typename Operation>
         inline void SerializationOp(Stream& s, Operation ser_action) {
-            READWRITE(ip);
+            READWRITE(FLATDATA(ip));
         }
 
         friend class CSubNet;
@@ -125,7 +121,7 @@ class CSubNet
         bool IsValid() const;
 
         friend bool operator==(const CSubNet& a, const CSubNet& b);
-        friend bool operator!=(const CSubNet& a, const CSubNet& b) { return !(a == b); }
+        friend bool operator!=(const CSubNet& a, const CSubNet& b);
         friend bool operator<(const CSubNet& a, const CSubNet& b);
 
         ADD_SERIALIZE_METHODS;
@@ -133,8 +129,8 @@ class CSubNet
         template <typename Stream, typename Operation>
         inline void SerializationOp(Stream& s, Operation ser_action) {
             READWRITE(network);
-            READWRITE(netmask);
-            READWRITE(valid);
+            READWRITE(FLATDATA(netmask));
+            READWRITE(FLATDATA(valid));
         }
 };
 
@@ -142,34 +138,39 @@ class CSubNet
 class CService : public CNetAddr
 {
     protected:
-        uint16_t port; // host order
+        unsigned short port; // host order
 
     public:
         CService();
         CService(const CNetAddr& ip, unsigned short port);
         CService(const struct in_addr& ipv4Addr, unsigned short port);
-        explicit CService(const struct sockaddr_in& addr);
+        CService(const struct sockaddr_in& addr);
+        void Init();
+        void SetPort(unsigned short portIn);
         unsigned short GetPort() const;
         bool GetSockAddr(struct sockaddr* paddr, socklen_t *addrlen) const;
         bool SetSockAddr(const struct sockaddr* paddr);
         friend bool operator==(const CService& a, const CService& b);
-        friend bool operator!=(const CService& a, const CService& b) { return !(a == b); }
+        friend bool operator!=(const CService& a, const CService& b);
         friend bool operator<(const CService& a, const CService& b);
         std::vector<unsigned char> GetKey() const;
-        std::string ToString() const;
+        std::string ToString(bool fUseGetnameinfo = true) const;
         std::string ToStringPort() const;
-        std::string ToStringIPPort() const;
+        std::string ToStringIPPort(bool fUseGetnameinfo = true) const;
 
         CService(const struct in6_addr& ipv6Addr, unsigned short port);
-        explicit CService(const struct sockaddr_in6& addr);
+        CService(const struct sockaddr_in6& addr);
 
         ADD_SERIALIZE_METHODS;
 
         template <typename Stream, typename Operation>
         inline void SerializationOp(Stream& s, Operation ser_action) {
-            READWRITE(ip);
-            READWRITE(WrapBigEndian(port));
+            READWRITE(FLATDATA(ip));
+            unsigned short portN = htons(port);
+            READWRITE(FLATDATA(portN));
+            if (ser_action.ForRead())
+                 port = ntohs(portN);
         }
 };
 
-#endif // BITCOIN_NETADDRESS_H
+#endif // DYNAMIC_NETADDRESS_H

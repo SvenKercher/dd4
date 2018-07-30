@@ -1,18 +1,18 @@
-// Copyright (c) 2011-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_QT_UTILITYDIALOG_H
-#define BITCOIN_QT_UTILITYDIALOG_H
+#ifndef DYNAMIC_QT_UTILITYDIALOG_H
+#define DYNAMIC_QT_UTILITYDIALOG_H
 
 #include <QDialog>
 #include <QObject>
 
-class BitcoinGUI;
-
-namespace interfaces {
-    class Node;
-}
+class ClientModel;
+class DynamicGUI;
 
 namespace Ui {
     class HelpMessageDialog;
@@ -24,7 +24,13 @@ class HelpMessageDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit HelpMessageDialog(interfaces::Node& node, QWidget *parent, bool about);
+    enum HelpMode {
+        about,
+        cmdline,
+        pshelp
+    };
+
+    explicit HelpMessageDialog(QWidget *parent, HelpMode helpMode);
     ~HelpMessageDialog();
 
     void printToConsole();
@@ -45,11 +51,11 @@ class ShutdownWindow : public QWidget
     Q_OBJECT
 
 public:
-    explicit ShutdownWindow(QWidget *parent=0, Qt::WindowFlags f=0);
-    static QWidget *showShutdownWindow(BitcoinGUI *window);
+    ShutdownWindow(QWidget *parent=0, Qt::WindowFlags f=0);
+    static QWidget *showShutdownWindow(DynamicGUI *window);
 
 protected:
     void closeEvent(QCloseEvent *event);
 };
 
-#endif // BITCOIN_QT_UTILITYDIALOG_H
+#endif // DYNAMIC_QT_UTILITYDIALOG_H

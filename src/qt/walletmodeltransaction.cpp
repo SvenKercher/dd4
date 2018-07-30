@@ -1,34 +1,45 @@
-// Copyright (c) 2011-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <qt/walletmodeltransaction.h>
+#include "walletmodeltransaction.h"
 
-#include <interfaces/node.h>
-#include <policy/policy.h>
+#include "wallet/wallet.h"
 
 WalletModelTransaction::WalletModelTransaction(const QList<SendCoinsRecipient> &_recipients) :
     recipients(_recipients),
+    walletTransaction(0),
+    keyChange(0),
     fee(0)
 {
+    walletTransaction = new CWalletTx();
 }
 
-QList<SendCoinsRecipient> WalletModelTransaction::getRecipients() const
+WalletModelTransaction::~WalletModelTransaction()
+{
+    delete keyChange;
+    delete walletTransaction;
+}
+
+QList<SendCoinsRecipient> WalletModelTransaction::getRecipients()
 {
     return recipients;
 }
 
-std::unique_ptr<interfaces::PendingWalletTx>& WalletModelTransaction::getWtx()
+CWalletTx *WalletModelTransaction::getTransaction()
 {
-    return wtx;
+    return walletTransaction;
 }
 
 unsigned int WalletModelTransaction::getTransactionSize()
 {
-    return wtx ? wtx->getVirtualSize() : 0;
+    return (!walletTransaction ? 0 : (::GetSerializeSize(*(CTransaction*)walletTransaction, SER_NETWORK, PROTOCOL_VERSION)));
 }
 
-CAmount WalletModelTransaction::getTransactionFee() const
+CAmount WalletModelTransaction::getTransactionFee()
 {
     return fee;
 }
@@ -40,7 +51,6 @@ void WalletModelTransaction::setTransactionFee(const CAmount& newFee)
 
 void WalletModelTransaction::reassignAmounts(int nChangePosRet)
 {
-    const CTransaction* walletTransaction = &wtx->get();
     int i = 0;
     for (QList<SendCoinsRecipient>::iterator it = recipients.begin(); it != recipients.end(); ++it)
     {
@@ -71,12 +81,22 @@ void WalletModelTransaction::reassignAmounts(int nChangePosRet)
     }
 }
 
-CAmount WalletModelTransaction::getTotalTransactionAmount() const
+CAmount WalletModelTransaction::getTotalTransactionAmount()
 {
     CAmount totalTransactionAmount = 0;
-    for (const SendCoinsRecipient &rcp : recipients)
+    Q_FOREACH(const SendCoinsRecipient &rcp, recipients)
     {
         totalTransactionAmount += rcp.amount;
     }
     return totalTransactionAmount;
+}
+
+void WalletModelTransaction::newPossibleKeyChange(CWallet *wallet)
+{
+    keyChange = new CReserveKey(wallet);
+}
+
+CReserveKey *WalletModelTransaction::getPossibleKeyChange()
+{
+    return keyChange;
 }

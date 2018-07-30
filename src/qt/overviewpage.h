@@ -1,19 +1,22 @@
-// Copyright (c) 2011-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_QT_OVERVIEWPAGE_H
-#define BITCOIN_QT_OVERVIEWPAGE_H
+#ifndef DYNAMIC_QT_OVERVIEWPAGE_H
+#define DYNAMIC_QT_OVERVIEWPAGE_H
 
-#include <interfaces/wallet.h>
+#include "amount.h"
 
 #include <QWidget>
 #include <memory>
 
 class ClientModel;
+class PlatformStyle;
 class TransactionFilterProxy;
 class TxViewDelegate;
-class PlatformStyle;
 class WalletModel;
 
 namespace Ui {
@@ -38,27 +41,47 @@ public:
     void showOutOfSyncWarning(bool fShow);
 
 public Q_SLOTS:
-    void setBalance(const interfaces::WalletBalances& balances);
+    void privateSendStatus();
+    void setBalance(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& immatureBalance, const CAmount& anonymizedBalance,
+                    const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance);
 
 Q_SIGNALS:
     void transactionClicked(const QModelIndex &index);
     void outOfSyncWarningClicked();
 
 private:
+    QTimer *timer;
     Ui::OverviewPage *ui;
     ClientModel *clientModel;
     WalletModel *walletModel;
-    interfaces::WalletBalances m_balances;
+    CAmount currentBalance;
+    CAmount currentUnconfirmedBalance;
+    CAmount currentImmatureBalance;
+    CAmount currentAnonymizedBalance;
+    CAmount currentWatchOnlyBalance;
+    CAmount currentWatchUnconfBalance;
+    CAmount currentWatchImmatureBalance;
+    int nDisplayUnit;
+    bool fShowAdvancedPSUI;
 
     TxViewDelegate *txdelegate;
     std::unique_ptr<TransactionFilterProxy> filter;
 
+    void SetupTransactionList(int nNumItems);
+    void DisablePrivateSendCompletely();
+
 private Q_SLOTS:
+    void togglePrivateSend();
+    void privateSendAuto();
+    void privateSendReset();
+    void privateSendInfo();
     void updateDisplayUnit();
+    void updatePrivateSendProgress();
+    void updateAdvancedPSUI(bool fShowAdvancedPSUI);
     void handleTransactionClicked(const QModelIndex &index);
     void updateAlerts(const QString &warnings);
     void updateWatchOnlyLabels(bool showWatchOnly);
     void handleOutOfSyncWarningClicks();
 };
 
-#endif // BITCOIN_QT_OVERVIEWPAGE_H
+#endif // DYNAMIC_QT_OVERVIEWPAGE_H

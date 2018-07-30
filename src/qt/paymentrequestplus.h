@@ -1,17 +1,16 @@
-// Copyright (c) 2011-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_QT_PAYMENTREQUESTPLUS_H
-#define BITCOIN_QT_PAYMENTREQUESTPLUS_H
+#ifndef DYNAMIC_QT_PAYMENTREQUESTPLUS_H
+#define DYNAMIC_QT_PAYMENTREQUESTPLUS_H
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#include <qt/paymentrequest.pb.h>
-#pragma GCC diagnostic pop
+#include "paymentrequest.pb.h"
 
-#include <amount.h>
-#include <script/script.h>
+#include "base58.h"
 
 #include <openssl/x509.h>
 
@@ -49,4 +48,4 @@ private:
     payments::PaymentDetails details;
 };
 
-#endif // BITCOIN_QT_PAYMENTREQUESTPLUS_H
+#endif // DYNAMIC_QT_PAYMENTREQUESTPLUS_H

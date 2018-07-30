@@ -1,14 +1,26 @@
-// Copyright (c) 2011-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <qt/receiverequestdialog.h>
-#include <qt/forms/ui_receiverequestdialog.h>
+#if defined(HAVE_CONFIG_H)
+#include "config/dynamic-config.h" /* for USE_QRCODE */
+#endif
 
-#include <qt/bitcoinunits.h>
-#include <qt/guiconstants.h>
-#include <qt/guiutil.h>
-#include <qt/optionsmodel.h>
+#include "receiverequestdialog.h"
+#include "ui_receiverequestdialog.h"
+
+#include "dynamicunits.h"
+#include "guiconstants.h"
+#include "guiutil.h"
+#include "optionsmodel.h"
+#include "walletmodel.h"
+
+#ifdef USE_QRCODE
+#include <qrencode.h>
+#endif
 
 #include <QClipboard>
 #include <QDrag>
@@ -16,13 +28,8 @@
 #include <QMimeData>
 #include <QMouseEvent>
 #include <QPixmap>
-
-#if defined(HAVE_CONFIG_H)
-#include <config/bitcoin-config.h> /* for USE_QRCODE */
-#endif
-
-#ifdef USE_QRCODE
-#include <qrencode.h>
+#if QT_VERSION < 0x050000
+#include <QUrl>
 #endif
 
 QRImageWidget::QRImageWidget(QWidget *parent):
@@ -64,7 +71,7 @@ void QRImageWidget::saveImage()
 {
     if(!pixmap())
         return;
-    QString fn = GUIUtil::getSaveFileName(this, tr("Save QR Code"), QString(), tr("PNG Image (*.png)"), nullptr);
+    QString fn = GUIUtil::getSaveFileName(this, tr("Save QR Code"), QString(), tr("PNG Image (*.png)"), NULL);
     if (!fn.isEmpty())
     {
         exportImage().save(fn);
@@ -105,12 +112,12 @@ ReceiveRequestDialog::~ReceiveRequestDialog()
     delete ui;
 }
 
-void ReceiveRequestDialog::setModel(WalletModel *_model)
+void ReceiveRequestDialog::setModel(OptionsModel *_model)
 {
     this->model = _model;
 
     if (_model)
-        connect(_model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(update()));
+        connect(_model, SIGNAL(displayUnitChanged(int)), this, SLOT(update()));
 
     // update the display unit if necessary
     update();
@@ -131,7 +138,7 @@ void ReceiveRequestDialog::update()
         target = info.address;
     setWindowTitle(tr("Request payment to %1").arg(target));
 
-    QString uri = GUIUtil::formatBitcoinURI(info);
+    QString uri = GUIUtil::formatDynamicURI(info);
     ui->btnSaveAs->setEnabled(false);
     QString html;
     html += "<html><font face='verdana, arial, helvetica, sans-serif'>";
@@ -140,14 +147,15 @@ void ReceiveRequestDialog::update()
     html += "<a href=\""+uri+"\">" + GUIUtil::HtmlEscape(uri) + "</a><br>";
     html += "<b>"+tr("Address")+"</b>: " + GUIUtil::HtmlEscape(info.address) + "<br>";
     if(info.amount)
-        html += "<b>"+tr("Amount")+"</b>: " + BitcoinUnits::formatHtmlWithUnit(model->getOptionsModel()->getDisplayUnit(), info.amount) + "<br>";
+        html += "<b>"+tr("Amount")+"</b>: " + DynamicUnits::formatHtmlWithUnit(model->getDisplayUnit(), info.amount) + "<br>";
     if(!info.label.isEmpty())
         html += "<b>"+tr("Label")+"</b>: " + GUIUtil::HtmlEscape(info.label) + "<br>";
     if(!info.message.isEmpty())
         html += "<b>"+tr("Message")+"</b>: " + GUIUtil::HtmlEscape(info.message) + "<br>";
-    if(model->isMultiwallet()) {
-        html += "<b>"+tr("Wallet")+"</b>: " + GUIUtil::HtmlEscape(model->getWalletName()) + "<br>";
-    }
+    if(info.fUseInstantSend)
+        html += "<b>"+tr("InstantSend")+"</b>: Yes<br>";
+    else
+        html += "<b>"+tr("InstantSend")+"</b>: No<br>";
     ui->outUri->setText(html);
 
 #ifdef USE_QRCODE
@@ -183,13 +191,9 @@ void ReceiveRequestDialog::update()
             QPainter painter(&qrAddrImage);
             painter.drawImage(0, 0, qrImage.scaled(QR_IMAGE_SIZE, QR_IMAGE_SIZE));
             QFont font = GUIUtil::fixedPitchFont();
-            QRect paddedRect = qrAddrImage.rect();
-
-            // calculate ideal font size
-            qreal font_size = GUIUtil::calculateIdealFontSize(paddedRect.width() - 20, info.address, font);
-            font.setPointSizeF(font_size);
-
+            font.setPixelSize(12);
             painter.setFont(font);
+            QRect paddedRect = qrAddrImage.rect();
             paddedRect.setHeight(QR_IMAGE_SIZE+12);
             painter.drawText(paddedRect, Qt::AlignBottom|Qt::AlignCenter, info.address);
             painter.end();
@@ -203,7 +207,7 @@ void ReceiveRequestDialog::update()
 
 void ReceiveRequestDialog::on_btnCopyURI_clicked()
 {
-    GUIUtil::setClipboard(GUIUtil::formatBitcoinURI(info));
+    GUIUtil::setClipboard(GUIUtil::formatDynamicURI(info));
 }
 
 void ReceiveRequestDialog::on_btnCopyAddress_clicked()

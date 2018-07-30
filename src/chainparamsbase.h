@@ -1,17 +1,21 @@
-// Copyright (c) 2014-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_CHAINPARAMSBASE_H
-#define BITCOIN_CHAINPARAMSBASE_H
+#ifndef DYNAMIC_CHAINPARAMSBASE_H
+#define DYNAMIC_CHAINPARAMSBASE_H
 
-#include <memory>
 #include <string>
 #include <vector>
 
+static const int DEFAULT_P2P_PORT = 33300;
+
 /**
- * CBaseChainParams defines the base parameters (shared between bitcoin-cli and bitcoind)
- * of a given instance of the Bitcoin system.
+ * CBaseChainParams defines the base parameters (shared between dynamic-cli and dynamicd)
+ * of a given instance of the Dynamic system.
  */
 class CBaseChainParams
 {
@@ -24,25 +28,18 @@ public:
     const std::string& DataDir() const { return strDataDir; }
     int RPCPort() const { return nRPCPort; }
 
-    CBaseChainParams() = delete;
-    CBaseChainParams(const std::string& data_dir, int rpc_port) : nRPCPort(rpc_port), strDataDir(data_dir) {}
+protected:
+    CBaseChainParams() {}
 
-private:
     int nRPCPort;
     std::string strDataDir;
 };
 
 /**
- * Creates and returns a std::unique_ptr<CBaseChainParams> of the chosen chain.
- * @returns a CBaseChainParams* of the chosen chain.
- * @throws a std::runtime_error if the chain is not supported.
+ * Append the help messages for the chainparams options to the
+ * parameter string.
  */
-std::unique_ptr<CBaseChainParams> CreateBaseChainParams(const std::string& chain);
-
-/**
- *Set the arguments for chainparams
- */
-void SetupChainParamsBaseOptions();
+void AppendParamsHelpMessages(std::string& strUsage, bool debugHelp=true);
 
 /**
  * Return the currently selected parameters. This won't change after app
@@ -50,7 +47,21 @@ void SetupChainParamsBaseOptions();
  */
 const CBaseChainParams& BaseParams();
 
+CBaseChainParams& BaseParams(const std::string& chain);
+
 /** Sets the params returned by Params() to those for the given network. */
 void SelectBaseParams(const std::string& chain);
 
-#endif // BITCOIN_CHAINPARAMSBASE_H
+/**
+ * Looks for -regtest, -testnet and returns the appropriate BIP70 chain name.
+ * @return CBaseChainParams::MAX_NETWORK_TYPES if an invalid combination is given. CBaseChainParams::MAIN by default.
+ */
+std::string ChainNameFromCommandLine();
+
+/**
+ * Return true if SelectBaseParamsFromCommandLine() has been called to select
+ * a network.
+ */
+bool AreBaseParamsConfigured();
+
+#endif // DYNAMIC_CHAINPARAMSBASE_H

@@ -1,20 +1,21 @@
-// Copyright (c) 2011-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <qt/walletframe.h>
-#include <qt/walletmodel.h>
+#include "walletframe.h"
 
-#include <qt/bitcoingui.h>
-#include <qt/walletview.h>
+#include "dynamicgui.h"
+#include "walletview.h"
 
-#include <cassert>
 #include <cstdio>
 
 #include <QHBoxLayout>
 #include <QLabel>
 
-WalletFrame::WalletFrame(const PlatformStyle *_platformStyle, BitcoinGUI *_gui) :
+WalletFrame::WalletFrame(const PlatformStyle *_platformStyle, DynamicGUI *_gui) :
     QFrame(_gui),
     gui(_gui),
     platformStyle(_platformStyle)
@@ -40,30 +41,19 @@ void WalletFrame::setClientModel(ClientModel *_clientModel)
     this->clientModel = _clientModel;
 }
 
-bool WalletFrame::addWallet(WalletModel *walletModel)
+bool WalletFrame::addWallet(const QString& name, WalletModel *walletModel)
 {
-    if (!gui || !clientModel || !walletModel) {
+    if (!gui || !clientModel || !walletModel || mapWalletViews.count(name) > 0)
         return false;
-    }
-
-    const QString name = walletModel->getWalletName();
-    if (mapWalletViews.count(name) > 0) {
-        return false;
-    }
 
     WalletView *walletView = new WalletView(platformStyle, this);
-    walletView->setBitcoinGUI(gui);
+    walletView->setDynamicGUI(gui);
     walletView->setClientModel(clientModel);
     walletView->setWalletModel(walletModel);
     walletView->showOutOfSyncWarning(bOutOfSync);
 
-    WalletView* current_wallet_view = currentWalletView();
-    if (current_wallet_view) {
-        walletView->setCurrentIndex(current_wallet_view->currentIndex());
-    } else {
-        walletView->gotoOverviewPage();
-    }
-
+     /* TODO we should goto the currently selected page once dynamically adding wallets is supported */
+    walletView->gotoOverviewPage();
     walletStack->addWidget(walletView);
     mapWalletViews[name] = walletView;
 
@@ -82,7 +72,6 @@ bool WalletFrame::setCurrentWallet(const QString& name)
 
     WalletView *walletView = mapWalletViews.value(name);
     walletStack->setCurrentWidget(walletView);
-    assert(walletView);
     walletView->updateEncryptionStatus();
     return true;
 }
@@ -94,7 +83,6 @@ bool WalletFrame::removeWallet(const QString &name)
 
     WalletView *walletView = mapWalletViews.take(name);
     walletStack->removeWidget(walletView);
-    delete walletView;
     return true;
 }
 
@@ -137,6 +125,20 @@ void WalletFrame::gotoHistoryPage()
         i.value()->gotoHistoryPage();
 }
 
+void WalletFrame::gotoDynodePage()
+{
+    QMap<QString, WalletView*>::const_iterator i;
+    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
+        i.value()->gotoDynodePage();
+}
+
+void WalletFrame::gotoMiningPage()
+{
+    QMap<QString, WalletView*>::const_iterator i;
+    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
+    i.value()->gotoMiningPage();
+}
+
 void WalletFrame::gotoReceiveCoinsPage()
 {
     QMap<QString, WalletView*>::const_iterator i;
@@ -158,8 +160,7 @@ void WalletFrame::gotoSignMessageTab(QString addr)
         walletView->gotoSignMessageTab(addr);
 }
 
-void WalletFrame::gotoVerifyMessageTab(QString addr)
-{
+void WalletFrame::gotoVerifyMessageTab(QString addr) {
     WalletView *walletView = currentWalletView();
     if (walletView)
         walletView->gotoVerifyMessageTab(addr);
@@ -191,6 +192,13 @@ void WalletFrame::unlockWallet()
     WalletView *walletView = currentWalletView();
     if (walletView)
         walletView->unlockWallet();
+}
+
+void WalletFrame::lockWallet()
+{
+    WalletView *walletView = currentWalletView();
+    if (walletView)
+        walletView->lockWallet();
 }
 
 void WalletFrame::usedSendingAddresses()

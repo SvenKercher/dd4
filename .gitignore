@@ -1,13 +1,18 @@
+*.sublime-project
+*.sublime-workspace
+todo.txt
+reset-files.bash
+
 *.tar.gz
 
 *.exe
-src/bitcoin
-src/bitcoind
-src/bitcoin-cli
-src/bitcoin-tx
-src/test/test_bitcoin
-src/test/test_bitcoin_fuzzy
-src/qt/test/test_bitcoin-qt
+src/dynamic
+src/dynamicd
+src/dynamic-cli
+src/dynamic-tx
+src/test/test_dynamic
+src/qt/test/test_dynamic-qt
+src/bench/bench_dynamic
 
 # autoreconf
 Makefile.in
@@ -30,8 +35,8 @@ config.log
 config.status
 configure
 libtool
-src/config/bitcoin-config.h
-src/config/bitcoin-config.h.in
+src/config/dynamic-config.h
+src/config/dynamic-config.h.in
 src/config/stamp-h1
 share/setup.nsi
 share/qt/Info.plist
@@ -43,12 +48,7 @@ src/qt/moc_*.cpp
 src/qt/forms/ui_*.h
 
 src/qt/test/moc*.cpp
-
-src/qt/bitcoin-qt.config
-src/qt/bitcoin-qt.creator
-src/qt/bitcoin-qt.creator.user
-src/qt/bitcoin-qt.files
-src/qt/bitcoin-qt.includes
+libconftest.dylib*
 
 .deps
 .dirstamp
@@ -62,6 +62,7 @@ src/qt/bitcoin-qt.includes
 *.o
 *.o-*
 *.patch
+.dynamic
 *.a
 *.pb.cc
 *.pb.h
@@ -80,13 +81,15 @@ src/qt/bitcoin-qt.includes
 # Compilation and Qt preprocessor part
 *.qm
 Makefile
-bitcoin-qt
-Bitcoin-Qt.app
-background.tiff*
+dynamic-qt
+dynamic-Qt.app
+/dist/
+/dist/*.*
 
 # Unit-tests
 Makefile.test
-bitcoin-qt_test
+dynamic-qt_test
+src/test/buildenv.py
 
 # Resources cpp
 qrc_*.cpp
@@ -99,7 +102,7 @@ build
 *.gcno
 *.gcda
 /*.info
-test_bitcoin.coverage/
+test_dynamic.coverage/
 total.coverage/
 coverage_percent.txt
 
@@ -107,12 +110,27 @@ coverage_percent.txt
 linux-coverage-build
 linux-build
 win32-build
-test/config.ini
-test/cache/*
+qa/pull-tester/run-dynamicd-for-test.sh
+qa/pull-tester/tests_config.py
+qa/pull-tester/cache/*
+qa/pull-tester/test.*/*
+qa/tmp
+cache/
+share/DynamicdComparisonTool.jar
 
 !src/leveldb*/Makefile
 
+.cproject
+.project
+.autotools
 /doc/doxygen/
 
-libbitcoinconsensus.pc
-contrib/devtools/split-debug.sh
+libdynamicconsensus.pc
+src/qt/dynamic-qt.bash
+qa/pull-tester/tests-config.sh
+
+#development symlinks
+dynamic-cli
+dynamicd
+dynamic-qt
+make

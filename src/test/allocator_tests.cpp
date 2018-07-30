@@ -1,13 +1,11 @@
-// Copyright (c) 2012-2017 The Bitcoin Core developers
+// Copyright (c) 2012-2015 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <util.h>
+#include "util.h"
 
-#include <support/allocators/secure.h>
-#include <test/test_bitcoin.h>
-
-#include <memory>
+#include "support/allocators/secure.h"
+#include "test/test_dynamic.h"
 
 #include <boost/test/unit_test.hpp>
 
@@ -64,10 +62,10 @@ BOOST_AUTO_TEST_CASE(arena_tests)
     BOOST_CHECK(b.stats().used == 128);
     b.free(a3);
     BOOST_CHECK(b.stats().used == 0);
-    BOOST_CHECK_EQUAL(b.stats().chunks_used, 0U);
+    BOOST_CHECK_EQUAL(b.stats().chunks_used, 0);
     BOOST_CHECK(b.stats().total == synth_size);
     BOOST_CHECK(b.stats().free == synth_size);
-    BOOST_CHECK_EQUAL(b.stats().chunks_free, 1U);
+    BOOST_CHECK_EQUAL(b.stats().chunks_free, 1);
 
     std::vector<void*> addr;
     BOOST_CHECK(b.alloc(0) == nullptr); // allocating 0 always returns nullptr
@@ -92,7 +90,6 @@ BOOST_AUTO_TEST_CASE(arena_tests)
     for (int x=0; x<1024; ++x)
         b.free(addr[1023-x]);
     addr.clear();
-
     // Now allocate in smaller unequal chunks, then deallocate haphazardly
     // Not all the chunks will succeed allocating, but freeing nullptr is
     // allowed so that is no problem.
@@ -133,7 +130,7 @@ class TestLockedPageAllocator: public LockedPageAllocator
 {
 public:
     TestLockedPageAllocator(int count_in, int lockedcount_in): count(count_in), lockedcount(lockedcount_in) {}
-    void* AllocateLocked(size_t len, bool *lockingSuccess) override
+    void* AllocateLocked(size_t len, bool *lockingSuccess)
     {
         *lockingSuccess = false;
         if (count > 0) {
@@ -148,10 +145,10 @@ public:
         }
         return 0;
     }
-    void FreeLocked(void* addr, size_t len) override
+    void FreeLocked(void* addr, size_t len)
     {
     }
-    size_t GetLimit() override
+    size_t GetLimit()
     {
         return std::numeric_limits<size_t>::max();
     }

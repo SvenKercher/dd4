@@ -1,15 +1,19 @@
-// Copyright (c) 2009-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_CHECKPOINTS_H
-#define BITCOIN_CHECKPOINTS_H
+#ifndef DYNAMIC_CHECKPOINTS_H
+#define DYNAMIC_CHECKPOINTS_H
 
-#include <uint256.h>
+#include "uint256.h"
 
 #include <map>
 
 class CBlockIndex;
+
 struct CCheckpointData;
 
 /**
@@ -19,9 +23,14 @@ struct CCheckpointData;
 namespace Checkpoints
 {
 
-//! Returns last CBlockIndex* that is a checkpoint
+//! Return conservative estimate of total number of blocks, 0 if unknown
+int GetTotalBlocksEstimate(const CCheckpointData& data);
+
+//! Returns last CBlockIndex* in mapBlockIndex that is a checkpoint
 CBlockIndex* GetLastCheckpoint(const CCheckpointData& data);
+
+double GuessVerificationProgress(const CCheckpointData& data, CBlockIndex* pindex, bool fSigchecks = true);
 
 } //namespace Checkpoints
 
-#endif // BITCOIN_CHECKPOINTS_H
+#endif // DYNAMIC_CHECKPOINTS_H

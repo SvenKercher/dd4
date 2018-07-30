@@ -1,26 +1,33 @@
-// Copyright (c) 2011-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_QT_WALLETVIEW_H
-#define BITCOIN_QT_WALLETVIEW_H
+#ifndef DYNAMIC_QT_WALLETVIEW_H
+#define DYNAMIC_QT_WALLETVIEW_H
 
-#include <amount.h>
+#include "amount.h"
+
+#include "dynodelist.h"
 
 #include <QStackedWidget>
 
-class BitcoinGUI;
+class DynamicGUI;
 class ClientModel;
+class MiningPage;
 class OverviewPage;
 class PlatformStyle;
-class ReceiveCoinsDialog;
 class SendCoinsDialog;
 class SendCoinsRecipient;
+class ReceiveCoinsDialog;
+class AddressBookPage;
 class TransactionView;
 class WalletModel;
-class AddressBookPage;
 
 QT_BEGIN_NAMESPACE
+class QLabel;
 class QModelIndex;
 class QProgressDialog;
 QT_END_NAMESPACE
@@ -39,14 +46,13 @@ public:
     explicit WalletView(const PlatformStyle *platformStyle, QWidget *parent);
     ~WalletView();
 
-    void setBitcoinGUI(BitcoinGUI *gui);
+    void setDynamicGUI(DynamicGUI *gui);
     /** Set the client model.
         The client model represents the part of the core that communicates with the P2P network, and is wallet-agnostic.
     */
     void setClientModel(ClientModel *clientModel);
-    WalletModel *getWalletModel() { return walletModel; }
     /** Set the wallet model.
-        The wallet model represents a bitcoin wallet, and offers access to the list of transactions, address book and sending
+        The wallet model represents a dynamic wallet, and offers access to the list of transactions, address book and sending
         functionality.
     */
     void setWalletModel(WalletModel *walletModel);
@@ -60,27 +66,33 @@ private:
     WalletModel *walletModel;
 
     OverviewPage *overviewPage;
-    QWidget *transactionsPage;
-    ReceiveCoinsDialog *receiveCoinsPage;
     SendCoinsDialog *sendCoinsPage;
+    ReceiveCoinsDialog *receiveCoinsPage;
     AddressBookPage *usedSendingAddressesPage;
     AddressBookPage *usedReceivingAddressesPage;
-
+    QWidget *transactionsPage;
     TransactionView *transactionView;
+    DynodeList *dynodeListPage;
+    MiningPage *miningPage;
 
     QProgressDialog *progressDialog;
+    QLabel *transactionSum;
     const PlatformStyle *platformStyle;
 
 public Q_SLOTS:
     /** Switch to overview (home) page */
     void gotoOverviewPage();
-    /** Switch to history (transactions) page */
-    void gotoHistoryPage();
-    /** Switch to receive coins page */
-    void gotoReceiveCoinsPage();
     /** Switch to send coins page */
     void gotoSendCoinsPage(QString addr = "");
-
+    /** Switch to receive coins page */
+    void gotoReceiveCoinsPage();
+    /** Switch to history (transactions) page */
+    void gotoHistoryPage();
+    /** Switch to Dynode page */
+    void gotoDynodePage();
+    /** Switch to mining page */
+    void gotoMiningPage();
+    
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");
     /** Show Sign/Verify Message dialog and switch to verify message tab */
@@ -98,7 +110,9 @@ public Q_SLOTS:
     /** Change encrypted wallet passphrase */
     void changePassphrase();
     /** Ask for passphrase to unlock wallet temporarily */
-    void unlockWallet();
+    void unlockWallet(bool fAnonymizeOnly=false);
+    /** Lock wallet */
+    void lockWallet();
 
     /** Show used sending addresses */
     void usedSendingAddresses();
@@ -111,8 +125,14 @@ public Q_SLOTS:
     /** Show progress dialog e.g. for rescan */
     void showProgress(const QString &title, int nProgress);
 
+    // Clicking on the lock icon will open the passphrase dialog
+    void on_labelWalletEncryptionIcon_clicked(bool fForMixingOnly = false);
+
     /** User has requested more information about the out of sync state */
     void requestedSyncWarningInfo();
+
+    /** Update selected DYN amount from transactionview */
+    void trxAmount(QString amount);
 
 Q_SIGNALS:
     /** Signal that we want to show the main window */
@@ -120,13 +140,13 @@ Q_SIGNALS:
     /**  Fired when a message should be reported to the user */
     void message(const QString &title, const QString &message, unsigned int style);
     /** Encryption status of wallet changed */
-    void encryptionStatusChanged();
+    void encryptionStatusChanged(int status);
     /** HD-Enabled status of wallet changed (only possible during startup) */
-    void hdEnabledStatusChanged();
+    void hdEnabledStatusChanged(int hdEnabled);
     /** Notify that a new transaction appeared */
-    void incomingTransaction(const QString& date, int unit, const CAmount& amount, const QString& type, const QString& address, const QString& label, const QString& walletName);
+    void incomingTransaction(const QString& date, int unit, const CAmount& amount, const QString& type, const QString& address, const QString& label);
     /** Notify that the out of sync warning icon has been pressed */
     void outOfSyncWarningClicked();
 };
 
-#endif // BITCOIN_QT_WALLETVIEW_H
+#endif // DYNAMIC_QT_WALLETVIEW_H

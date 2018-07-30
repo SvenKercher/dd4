@@ -1,9 +1,12 @@
-// Copyright (c) 2011-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_QT_ASKPASSPHRASEDIALOG_H
-#define BITCOIN_QT_ASKPASSPHRASEDIALOG_H
+#ifndef DYNAMIC_QT_ASKPASSPHRASEDIALOG_H
+#define DYNAMIC_QT_ASKPASSPHRASEDIALOG_H
 
 #include <QDialog>
 
@@ -22,6 +25,7 @@ class AskPassphraseDialog : public QDialog
 public:
     enum Mode {
         Encrypt,    /**< Ask passphrase twice and encrypt */
+        UnlockMixing,     /**< Ask passphrase and unlock only for mixing */
         Unlock,     /**< Ask passphrase and unlock */
         ChangePass, /**< Ask old passphrase + new passphrase twice */
         Decrypt     /**< Ask passphrase and decrypt wallet */
@@ -43,11 +47,10 @@ private:
 private Q_SLOTS:
     void textChanged();
     void secureClearPassFields();
-    void toggleShowPassword(bool);
 
 protected:
     bool event(QEvent *event);
     bool eventFilter(QObject *object, QEvent *event);
 };
 
-#endif // BITCOIN_QT_ASKPASSPHRASEDIALOG_H
+#endif // DYNAMIC_QT_ASKPASSPHRASEDIALOG_H

@@ -1,9 +1,12 @@
-// Copyright (c) 2011-2015 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_QT_QVALIDATEDLINEEDIT_H
-#define BITCOIN_QT_QVALIDATEDLINEEDIT_H
+#ifndef DYNAMIC_QT_QVALIDATEDLINEEDIT_H
+#define DYNAMIC_QT_QVALIDATEDLINEEDIT_H
 
 #include <QLineEdit>
 
@@ -34,10 +37,10 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void validationDidChange(QValidatedLineEdit *validatedLineEdit);
-
+    
 private Q_SLOTS:
     void markValid();
     void checkValidity();
 };
 
-#endif // BITCOIN_QT_QVALIDATEDLINEEDIT_H
+#endif // DYNAMIC_QT_QVALIDATEDLINEEDIT_H

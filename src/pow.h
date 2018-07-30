@@ -1,23 +1,50 @@
-// Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_POW_H
-#define BITCOIN_POW_H
+#ifndef DYNAMIC_POW_H
+#define DYNAMIC_POW_H
 
 #include <consensus/params.h>
-
+#include <arith_uint256.h>
+#include <chain.h>
+#include <sync.h>
+#include <util.h>
 #include <stdint.h>
 
+class arith_uint256;
 class CBlockHeader;
 class CBlockIndex;
 class uint256;
 
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params&);
-unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nFirstBlockTime, const Consensus::Params&);
+#define PERCENT_FACTOR 100
+
+#define BLOCK_TYPE CBlockHeader *
+#define BLOCK_TIME(block) block->nTime
+#define INDEX_TYPE CBlockIndex *
+#define INDEX_HEIGHT(block) block->nHeight
+#define INDEX_TIME(block) block->GetBlockTime()
+#define INDEX_PREV(block) block->pprev
+#define INDEX_TARGET(block) block->nBits
+#define DIFF_SWITCHOVER(TEST, MAIN) (GetBoolArg("-testnet", false) ? TEST : MAIN)
+#define DIFF_ABS std::abs
+#define SET_COMPACT(EXPANDED, COMPACT) EXPANDED.SetCompact(COMPACT)
+#define GET_COMPACT(EXPANDED) EXPANDED.GetCompact()
+#define BIGINT_MULTIPLY(x, y) x* y
+#define BIGINT_DIVIDE(x, y) x / y
+#define BIGINT_GREATER_THAN(x, y) (x > y)
+
+const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex);
+
+bool CheckForkIsTrue(const CBlockIndex* pindexLast, bool fTableFlip=false);
+
+unsigned int LegacyRetargetBlock(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params&);
+unsigned int GetNextWorkRequired(const INDEX_TYPE pindexLast, const BLOCK_TYPE block, const Consensus::Params&);
 
 /** Check whether a block hash satisfies the proof-of-work requirement specified by nBits */
 bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params&);
 
-#endif // BITCOIN_POW_H
+#endif // DYNAMIC_POW_H

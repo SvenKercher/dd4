@@ -1,13 +1,11 @@
-// Copyright (c) 2016-2017 The Bitcoin Core developers
+// Copyright (c) 2017 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <qt/modaloverlay.h>
-#include <qt/forms/ui_modaloverlay.h>
+#include "modaloverlay.h"
+#include "ui_modaloverlay.h"
 
-#include <qt/guiutil.h>
-
-#include <chainparams.h>
+#include "guiutil.h"
 
 #include <QResizeEvent>
 #include <QPropertyAnimation>
@@ -81,7 +79,7 @@ void ModalOverlay::tipUpdate(int count, const QDateTime& blockDate, double nVeri
     // keep a vector of samples of verification progress at height
     blockProcessTime.push_front(qMakePair(currentDate.toMSecsSinceEpoch(), nVerificationProgress));
 
-    // show progress speed if we have more than one sample
+    // show progress speed if we have more then one sample
     if (blockProcessTime.size() >= 2) {
         double progressDelta = 0;
         double progressPerHour = 0;
@@ -104,7 +102,7 @@ void ModalOverlay::tipUpdate(int count, const QDateTime& blockDate, double nVeri
         ui->progressIncreasePerH->setText(QString::number(progressPerHour * 100, 'f', 2)+"%");
 
         // show expected remaining time
-        if(remainingMSecs >= 0) {
+        if(remainingMSecs >= 0) {  
             ui->expectedTimeLeft->setText(GUIUtil::formatNiceTimeOffset(remainingMSecs / 1000.0));
         } else {
             ui->expectedTimeLeft->setText(QObject::tr("unknown"));
@@ -128,24 +126,17 @@ void ModalOverlay::tipUpdate(int count, const QDateTime& blockDate, double nVeri
         return;
 
     // estimate the number of headers left based on nPowTargetSpacing
-    // and check if the gui is not aware of the best header (happens rarely)
-    int estimateNumHeadersLeft = bestHeaderDate.secsTo(currentDate) / Params().GetConsensus().nPowTargetSpacing;
+    // and check if the gui is not aware of the the best header (happens rarely)
+    int estimateNumHeadersLeft = bestHeaderDate.secsTo(currentDate) / 600;
     bool hasBestHeader = bestHeaderHeight >= count;
 
     // show remaining number of blocks
-    if (estimateNumHeadersLeft < HEADER_HEIGHT_DELTA_SYNC && hasBestHeader) {
+    if (estimateNumHeadersLeft < 24 && hasBestHeader) {
         ui->numberOfBlocksLeft->setText(QString::number(bestHeaderHeight - count));
     } else {
         ui->numberOfBlocksLeft->setText(tr("Unknown. Syncing Headers (%1)...").arg(bestHeaderHeight));
         ui->expectedTimeLeft->setText(tr("Unknown..."));
     }
-}
-
-void ModalOverlay::toggleVisibility()
-{
-    showHide(layerIsVisible, true);
-    if (!layerIsVisible)
-        userClosed = true;
 }
 
 void ModalOverlay::showHide(bool hide, bool userRequested)

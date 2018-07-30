@@ -1,21 +1,26 @@
-// Copyright (c) 2015-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_MEMUSAGE_H
-#define BITCOIN_MEMUSAGE_H
+#ifndef DYNAMIC_MEMUSAGE_H
+#define DYNAMIC_MEMUSAGE_H
 
-#include <indirectmap.h>
+#include "indirectmap.h"
 
 #include <stdlib.h>
 
 #include <map>
-#include <memory>
 #include <set>
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
 
+#include <boost/foreach.hpp>
+#include <boost/unordered_set.hpp>
+#include <boost/unordered_map.hpp>
 
 namespace memusage
 {
@@ -146,12 +151,26 @@ static inline size_t DynamicUsage(const std::shared_ptr<X>& p)
     return p ? MallocUsage(sizeof(X)) + MallocUsage(sizeof(stl_shared_counter)) : 0;
 }
 
+// Boost data structures
+
 template<typename X>
 struct unordered_node : private X
 {
 private:
     void* ptr;
 };
+
+template<typename X, typename Y>
+static inline size_t DynamicUsage(const boost::unordered_set<X, Y>& s)
+{
+    return MallocUsage(sizeof(unordered_node<X>)) * s.size() + MallocUsage(sizeof(void*) * s.bucket_count());
+}
+
+template<typename X, typename Y, typename Z>
+static inline size_t DynamicUsage(const boost::unordered_map<X, Y, Z>& m)
+{
+    return MallocUsage(sizeof(unordered_node<std::pair<const X, Y> >)) * m.size() + MallocUsage(sizeof(void*) * m.bucket_count());
+}
 
 template<typename X, typename Y>
 static inline size_t DynamicUsage(const std::unordered_set<X, Y>& s)
@@ -167,4 +186,4 @@ static inline size_t DynamicUsage(const std::unordered_map<X, Y, Z>& m)
 
 }
 
-#endif // BITCOIN_MEMUSAGE_H
+#endif // DYNAMIC_MEMUSAGE_H

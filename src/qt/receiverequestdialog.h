@@ -1,16 +1,21 @@
-// Copyright (c) 2011-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_QT_RECEIVEREQUESTDIALOG_H
-#define BITCOIN_QT_RECEIVEREQUESTDIALOG_H
+#ifndef DYNAMIC_QT_RECEIVEREQUESTDIALOG_H
+#define DYNAMIC_QT_RECEIVEREQUESTDIALOG_H
 
-#include <qt/walletmodel.h>
+#include "walletmodel.h"
 
 #include <QDialog>
 #include <QImage>
 #include <QLabel>
 #include <QPainter>
+
+class OptionsModel;
 
 namespace Ui {
     class ReceiveRequestDialog;
@@ -51,7 +56,7 @@ public:
     explicit ReceiveRequestDialog(QWidget *parent = 0);
     ~ReceiveRequestDialog();
 
-    void setModel(WalletModel *model);
+    void setModel(OptionsModel *model);
     void setInfo(const SendCoinsRecipient &info);
 
 private Q_SLOTS:
@@ -62,8 +67,8 @@ private Q_SLOTS:
 
 private:
     Ui::ReceiveRequestDialog *ui;
-    WalletModel *model;
+    OptionsModel *model;
     SendCoinsRecipient info;
 };
 
-#endif // BITCOIN_QT_RECEIVEREQUESTDIALOG_H
+#endif // DYNAMIC_QT_RECEIVEREQUESTDIALOG_H

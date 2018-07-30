@@ -1,45 +1,50 @@
-// Copyright (c) 2011-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_QT_WALLETMODELTRANSACTION_H
-#define BITCOIN_QT_WALLETMODELTRANSACTION_H
+#ifndef DYNAMIC_QT_WALLETMODELTRANSACTION_H
+#define DYNAMIC_QT_WALLETMODELTRANSACTION_H
 
-#include <qt/walletmodel.h>
-
-#include <memory>
+#include "walletmodel.h"
 
 #include <QObject>
 
 class SendCoinsRecipient;
 
-namespace interfaces {
-class Node;
-class PendingWalletTx;
-}
+class CReserveKey;
+class CWallet;
+class CWalletTx;
 
 /** Data model for a walletmodel transaction. */
 class WalletModelTransaction
 {
 public:
     explicit WalletModelTransaction(const QList<SendCoinsRecipient> &recipients);
+    ~WalletModelTransaction();
 
-    QList<SendCoinsRecipient> getRecipients() const;
+    QList<SendCoinsRecipient> getRecipients();
 
-    std::unique_ptr<interfaces::PendingWalletTx>& getWtx();
+    CWalletTx *getTransaction();
     unsigned int getTransactionSize();
 
     void setTransactionFee(const CAmount& newFee);
-    CAmount getTransactionFee() const;
+    CAmount getTransactionFee();
 
-    CAmount getTotalTransactionAmount() const;
+    CAmount getTotalTransactionAmount();
+
+    void newPossibleKeyChange(CWallet *wallet);
+    CReserveKey *getPossibleKeyChange();
 
     void reassignAmounts(int nChangePosRet); // needed for the subtract-fee-from-amount feature
 
 private:
     QList<SendCoinsRecipient> recipients;
-    std::unique_ptr<interfaces::PendingWalletTx> wtx;
+    CWalletTx *walletTransaction;
+    CReserveKey *keyChange;
     CAmount fee;
 };
 
-#endif // BITCOIN_QT_WALLETMODELTRANSACTION_H
+#endif // DYNAMIC_QT_WALLETMODELTRANSACTION_H

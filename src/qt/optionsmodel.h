@@ -1,26 +1,22 @@
-// Copyright (c) 2011-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_QT_OPTIONSMODEL_H
-#define BITCOIN_QT_OPTIONSMODEL_H
+#ifndef DYNAMIC_QT_OPTIONSMODEL_H
+#define DYNAMIC_QT_OPTIONSMODEL_H
 
-#include <amount.h>
+#include "amount.h"
 
 #include <QAbstractListModel>
-
-namespace interfaces {
-class Node;
-}
 
 QT_BEGIN_NAMESPACE
 class QNetworkProxy;
 QT_END_NAMESPACE
 
-extern const char *DEFAULT_GUI_PROXY_HOST;
-static constexpr unsigned short DEFAULT_GUI_PROXY_PORT = 9050;
-
-/** Interface from Qt to configuration data structure for Bitcoin client.
+/** Interface from Qt to configuration data structure for Dynamic client.
    To Qt, the options are presented as a list with the different options
    laid out vertically.
    This can be changed to a tree once the settings become sufficiently
@@ -31,7 +27,7 @@ class OptionsModel : public QAbstractListModel
     Q_OBJECT
 
 public:
-    explicit OptionsModel(interfaces::Node& node, QObject *parent = 0, bool resetSettings = false);
+    explicit OptionsModel(QObject *parent = 0, bool resetSettings = false);
 
     enum OptionID {
         StartAtStartup,         // bool
@@ -45,15 +41,21 @@ public:
         ProxyUseTor,            // bool
         ProxyIPTor,             // QString
         ProxyPortTor,           // int
-        DisplayUnit,            // BitcoinUnits::Unit
+        DisplayUnit,            // DynamicUnits::Unit
         ThirdPartyTxUrls,       // QString
+        Digits,                 // QString
+        Theme,                  // QString
         Language,               // QString
         CoinControlFeatures,    // bool
         ThreadsScriptVerif,     // int
-        Prune,                  // bool
-        PruneSize,              // int
         DatabaseCache,          // int
         SpendZeroConfChange,    // bool
+        ShowDynodesTab,     // bool
+        ShowAdvancedPSUI,       // bool
+        LowKeysWarning,         // bool
+        PrivateSendRounds,      // int
+        PrivateSendAmount,      // int
+        PrivateSendMultiSession,// bool
         Listen,                 // bool
         OptionIDRowCount,
     };
@@ -68,23 +70,22 @@ public:
     void setDisplayUnit(const QVariant &value);
 
     /* Explicit getters */
-    bool getHideTrayIcon() const { return fHideTrayIcon; }
-    bool getMinimizeToTray() const { return fMinimizeToTray; }
-    bool getMinimizeOnClose() const { return fMinimizeOnClose; }
-    int getDisplayUnit() const { return nDisplayUnit; }
-    QString getThirdPartyTxUrls() const { return strThirdPartyTxUrls; }
+    bool getHideTrayIcon() { return fHideTrayIcon; }
+    bool getMinimizeToTray() { return fMinimizeToTray; }
+    bool getMinimizeOnClose() { return fMinimizeOnClose; }
+    int getDisplayUnit() { return nDisplayUnit; }
+    QString getThirdPartyTxUrls() { return strThirdPartyTxUrls; }
     bool getProxySettings(QNetworkProxy& proxy) const;
-    bool getCoinControlFeatures() const { return fCoinControlFeatures; }
+    bool getCoinControlFeatures() { return fCoinControlFeatures; }
+    bool getShowAdvancedPSUI() { return fShowAdvancedPSUI; }
     const QString& getOverriddenByCommandLine() { return strOverriddenByCommandLine; }
 
     /* Restart flag helper */
     void setRestartRequired(bool fRequired);
-    bool isRestartRequired() const;
-
-    interfaces::Node& node() const { return m_node; }
+    bool isRestartRequired();
+    bool resetSettings;
 
 private:
-    interfaces::Node& m_node;
     /* Qt-only settings */
     bool fHideTrayIcon;
     bool fMinimizeToTray;
@@ -93,7 +94,8 @@ private:
     int nDisplayUnit;
     QString strThirdPartyTxUrls;
     bool fCoinControlFeatures;
-    /* settings that were overridden by command-line */
+    bool fShowAdvancedPSUI;
+    /* settings that were overriden by command-line */
     QString strOverriddenByCommandLine;
 
     // Add option to list of GUI options overridden through command line/config file
@@ -103,8 +105,11 @@ private:
     void checkAndMigrate();
 Q_SIGNALS:
     void displayUnitChanged(int unit);
+    void privateSendRoundsChanged();
+    void privateSentAmountChanged();
+    void advancedPSUIChanged(bool);
     void coinControlFeaturesChanged(bool);
     void hideTrayIconChanged(bool);
 };
 
-#endif // BITCOIN_QT_OPTIONSMODEL_H
+#endif // DYNAMIC_QT_OPTIONSMODEL_H

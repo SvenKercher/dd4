@@ -1,9 +1,12 @@
-// Copyright (c) 2011-2016 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_QT_INTRO_H
-#define BITCOIN_QT_INTRO_H
+#ifndef DYNAMIC_QT_INTRO_H
+#define DYNAMIC_QT_INTRO_H
 
 #include <QDialog>
 #include <QMutex>
@@ -12,10 +15,6 @@
 static const bool DEFAULT_CHOOSE_DATADIR = false;
 
 class FreespaceChecker;
-
-namespace interfaces {
-    class Node;
-}
 
 namespace Ui {
     class Intro;
@@ -45,7 +44,7 @@ public:
      * @note do NOT call global GetDataDir() before calling this function, this
      * will cause the wrong path to be cached.
      */
-    static bool pickDataDirectory(interfaces::Node& node);
+    static bool pickDataDirectory();
 
     /**
      * Determine default data directory for operating system.
@@ -79,4 +78,4 @@ private:
     friend class FreespaceChecker;
 };
 
-#endif // BITCOIN_QT_INTRO_H
+#endif // DYNAMIC_QT_INTRO_H

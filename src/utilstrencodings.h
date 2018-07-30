@@ -1,30 +1,37 @@
-// Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 /**
  * Utilities for converting data from/to strings.
  */
-#ifndef BITCOIN_UTILSTRENCODINGS_H
-#define BITCOIN_UTILSTRENCODINGS_H
+
+#ifndef DYNAMIC_UTILSTRENCODINGS_H
+#define DYNAMIC_UTILSTRENCODINGS_H
 
 #include <stdint.h>
 #include <string>
 #include <vector>
+#include <cstdlib>
 
+#define UVOIDBEGIN(a)       ((void*)&(a))
 #define BEGIN(a)            ((char*)&(a))
 #define END(a)              ((char*)&((&(a))[1]))
 #define UBEGIN(a)           ((unsigned char*)&(a))
 #define UEND(a)             ((unsigned char*)&((&(a))[1]))
 #define ARRAYLEN(array)     (sizeof(array)/sizeof((array)[0]))
 
+/** This is needed because the foreach macro can't get over the comma in pair<t1, t2> */
+#define PAIRTYPE(t1, t2)    std::pair<t1, t2>
+
 /** Used by SanitizeString() */
 enum SafeChars
 {
     SAFE_CHARS_DEFAULT, //!< The full set of allowed chars
-    SAFE_CHARS_UA_COMMENT, //!< BIP-0014 subset
-    SAFE_CHARS_FILENAME, //!< Chars allowed in filenames
+    SAFE_CHARS_UA_COMMENT //!< BIP-0014 subset
 };
 
 /**
@@ -35,41 +42,28 @@ enum SafeChars
 * @return           A new string without unsafe chars
 */
 std::string SanitizeString(const std::string& str, int rule = SAFE_CHARS_DEFAULT);
+/// Formats the network peer user agent text (or subversion)
+/// by removing the begining and ending charactors(/).
+/// example: /Dynamic:1.0.0/ --> Dynamic:1.0.0
+std::string SanitizeSubVersionString(const std::string& str);
 std::vector<unsigned char> ParseHex(const char* psz);
 std::vector<unsigned char> ParseHex(const std::string& str);
 signed char HexDigit(char c);
-/* Returns true if each character in str is a hex character, and has an even
- * number of hex digits.*/
 bool IsHex(const std::string& str);
-/**
-* Return true if the string is a hex number, optionally prefixed with "0x"
-*/
-bool IsHexNumber(const std::string& str);
-std::vector<unsigned char> DecodeBase64(const char* p, bool* pfInvalid = nullptr);
+std::vector<unsigned char> DecodeBase64(const char* p, bool* pfInvalid = NULL);
 std::string DecodeBase64(const std::string& str);
 std::string EncodeBase64(const unsigned char* pch, size_t len);
 std::string EncodeBase64(const std::string& str);
-std::vector<unsigned char> DecodeBase32(const char* p, bool* pfInvalid = nullptr);
+std::vector<unsigned char> DecodeBase32(const char* p, bool* pfInvalid = NULL);
 std::string DecodeBase32(const std::string& str);
 std::string EncodeBase32(const unsigned char* pch, size_t len);
 std::string EncodeBase32(const std::string& str);
 
-void SplitHostPort(std::string in, int &portOut, std::string &hostOut);
 std::string i64tostr(int64_t n);
 std::string itostr(int n);
 int64_t atoi64(const char* psz);
 int64_t atoi64(const std::string& str);
 int atoi(const std::string& str);
-
-/**
- * Tests if the given character is a decimal digit.
- * @param[in] c     character to test
- * @return          true if the argument is a decimal digit; otherwise false.
- */
-constexpr bool IsDigit(char c)
-{
-    return c >= '0' && c <= '9';
-}
 
 /**
  * Convert string to signed 32-bit integer with strict parse error feedback.
@@ -159,28 +153,4 @@ bool TimingResistantEqual(const T& a, const T& b)
  */
 bool ParseFixedPoint(const std::string &val, int decimals, int64_t *amount_out);
 
-/** Convert from one power-of-2 number base to another. */
-template<int frombits, int tobits, bool pad, typename O, typename I>
-bool ConvertBits(const O& outfn, I it, I end) {
-    size_t acc = 0;
-    size_t bits = 0;
-    constexpr size_t maxv = (1 << tobits) - 1;
-    constexpr size_t max_acc = (1 << (frombits + tobits - 1)) - 1;
-    while (it != end) {
-        acc = ((acc << frombits) | *it) & max_acc;
-        bits += frombits;
-        while (bits >= tobits) {
-            bits -= tobits;
-            outfn((acc >> bits) & maxv);
-        }
-        ++it;
-    }
-    if (pad) {
-        if (bits) outfn((acc << (tobits - bits)) & maxv);
-    } else if (bits >= frombits || ((acc << (tobits - bits)) & maxv)) {
-        return false;
-    }
-    return true;
-}
-
-#endif // BITCOIN_UTILSTRENCODINGS_H
+#endif // DYNAMIC_UTILSTRENCODINGS_H

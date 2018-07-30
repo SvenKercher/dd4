@@ -1,26 +1,22 @@
-// Copyright (c) 2011-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_QT_SPLASHSCREEN_H
-#define BITCOIN_QT_SPLASHSCREEN_H
+#ifndef DYNAMIC_QT_SPLASHSCREEN_H
+#define DYNAMIC_QT_SPLASHSCREEN_H
 
 #include <functional>
 #include <QSplashScreen>
 
-#include <memory>
-
+class CWallet;
 class NetworkStyle;
-
-namespace interfaces {
-class Handler;
-class Node;
-class Wallet;
-};
 
 /** Class for the splashscreen with information of the running client.
  *
- * @note this is intentionally not a QSplashScreen. Bitcoin Core initialization
+ * @note this is intentionally not a QSplashScreen. Dynamic initialization
  * can take a long time, and in that case a progress window that cannot be
  * moved around and minimized has turned out to be frustrating to the user.
  */
@@ -29,7 +25,7 @@ class SplashScreen : public QWidget
     Q_OBJECT
 
 public:
-    explicit SplashScreen(interfaces::Node& node, Qt::WindowFlags f, const NetworkStyle *networkStyle);
+    explicit SplashScreen(Qt::WindowFlags f, const NetworkStyle *networkStyle);
     ~SplashScreen();
 
 protected:
@@ -42,7 +38,9 @@ public Q_SLOTS:
 
     /** Show message and progress */
     void showMessage(const QString &message, int alignment, const QColor &color);
-
+     
+    /** Sets the break action */
+    void setBreakAction(const std::function<void(void)> &action);
 protected:
     bool eventFilter(QObject * obj, QEvent * ev);
 
@@ -52,19 +50,16 @@ private:
     /** Disconnect core signals to splash screen */
     void unsubscribeFromCoreSignals();
     /** Connect wallet signals to splash screen */
-    void ConnectWallet(std::unique_ptr<interfaces::Wallet> wallet);
+    void ConnectWallet(CWallet*);
 
     QPixmap pixmap;
     QString curMessage;
     QColor curColor;
     int curAlignment;
 
-    interfaces::Node& m_node;
-    std::unique_ptr<interfaces::Handler> m_handler_init_message;
-    std::unique_ptr<interfaces::Handler> m_handler_show_progress;
-    std::unique_ptr<interfaces::Handler> m_handler_load_wallet;
-    std::list<std::unique_ptr<interfaces::Wallet>> m_connected_wallets;
-    std::list<std::unique_ptr<interfaces::Handler>> m_connected_wallet_handlers;
+    QList<CWallet*> connectedWallets;
+
+    std::function<void(void)> breakAction; 
 };
 
-#endif // BITCOIN_QT_SPLASHSCREEN_H
+#endif // DYNAMIC_QT_SPLASHSCREEN_H

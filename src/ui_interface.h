@@ -1,20 +1,21 @@
-// Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2012-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_UI_INTERFACE_H
-#define BITCOIN_UI_INTERFACE_H
+#ifndef DYNAMIC_UI_INTERFACE_H
+#define DYNAMIC_UI_INTERFACE_H
 
-#include <memory>
 #include <stdint.h>
 #include <string>
 
 #include <boost/signals2/last_value.hpp>
 #include <boost/signals2/signal.hpp>
 
-class CWallet;
+class CBasicKeyStore;
 class CBlockIndex;
+class CWallet;
+class uint256;
 
 /** General change type (added, updated, removed). */
 enum ChangeType
@@ -76,7 +77,7 @@ public:
     boost::signals2::signal<bool (const std::string& message, const std::string& caption, unsigned int style), boost::signals2::last_value<bool> > ThreadSafeMessageBox;
 
     /** If possible, ask the user a question. If not, falls back to ThreadSafeMessageBox(noninteractive_message, caption, style) and returns false. */
-    boost::signals2::signal<bool (const std::string& message, const std::string& noninteractive_message, const std::string& caption, unsigned int style), boost::signals2::last_value<bool> > ThreadSafeQuestion;
+    boost::signals2::signal<bool (const std::string& message, const std::string& noninteractive_message, const std::string& caption, unsigned int style), boost::signals2::last_value<bool> > ThreadSafeQuestion; 
 
     /** Progress message during initialization. */
     boost::signals2::signal<void (const std::string &message)> InitMessage;
@@ -84,25 +85,29 @@ public:
     /** Number of network connections changed. */
     boost::signals2::signal<void (int newNumConnections)> NotifyNumConnectionsChanged;
 
-    /** Network activity state changed. */
-    boost::signals2::signal<void (bool networkActive)> NotifyNetworkActiveChanged;
+    /** Number of Dynodes changed. */
+    boost::signals2::signal<void (int newNumDynodes)> NotifyStrDynodeCountChanged;
 
     /**
-     * Status bar alerts changed.
+     * New, updated or cancelled alert.
+     * @note called with lock cs_mapAlerts held.
      */
-    boost::signals2::signal<void ()> NotifyAlertChanged;
+    boost::signals2::signal<void (const uint256 &hash, ChangeType status)> NotifyAlertChanged;
 
     /** A wallet has been loaded. */
-    boost::signals2::signal<void (std::shared_ptr<CWallet> wallet)> LoadWallet;
+    boost::signals2::signal<void (CWallet* wallet)> LoadWallet;
 
-    /**
-     * Show progress e.g. for verifychain.
-     * resume_possible indicates shutting down now will result in the current progress action resuming upon restart.
-     */
-    boost::signals2::signal<void (const std::string &title, int nProgress, bool resume_possible)> ShowProgress;
+    /** Show progress e.g. for verifychain */
+    boost::signals2::signal<void (const std::string &title, int nProgress)> ShowProgress;
+
+    /** Set progress break action (possible "cancel button" triggers that action) */
+    boost::signals2::signal<void (std::function<void(void)> action)> SetProgressBreakAction;
 
     /** New block has been accepted */
     boost::signals2::signal<void (bool, const CBlockIndex *)> NotifyBlockTip;
+
+    /** Additional data sync progress changed */
+    boost::signals2::signal<void (double nSyncProgress)> NotifyAdditionalDataSyncProgressChanged;
 
     /** Best header has changed */
     boost::signals2::signal<void (bool, const CBlockIndex *)> NotifyHeaderTip;
@@ -117,10 +122,10 @@ void InitWarning(const std::string& str);
 /** Show error message **/
 bool InitError(const std::string& str);
 
-std::string AmountHighWarn(const std::string& optname);
-
 std::string AmountErrMsg(const char* const optname, const std::string& strValue);
+
+std::string AmountHighWarn(const std::string& optname);
 
 extern CClientUIInterface uiInterface;
 
-#endif // BITCOIN_UI_INTERFACE_H
+#endif // DYNAMIC_UI_INTERFACE_H

@@ -1,13 +1,15 @@
-// Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <utilmoneystr.h>
+#include "utilmoneystr.h"
 
-#include <primitives/transaction.h>
-#include <tinyformat.h>
-#include <utilstrencodings.h>
+#include "tinyformat.h"
+#include "primitives/transaction.h"
+#include "utilstrencodings.h"
 
 std::string FormatMoney(const CAmount& n)
 {

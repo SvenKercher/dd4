@@ -1,23 +1,27 @@
-// Copyright (c) 2014-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#if defined(HAVE_CONFIG_H)
-#include <config/bitcoin-config.h>
-#endif
+#include "timedata.h"
 
-#include <timedata.h>
-
-#include <netaddress.h>
-#include <sync.h>
-#include <ui_interface.h>
-#include <util.h>
-#include <utilstrencodings.h>
-#include <warnings.h>
-
+#include "netaddress.h"
+#include "sync.h"
+#include "ui_interface.h"
+#include "util.h"
+#include "utilstrencodings.h"
+#include "warnings.h"
 
 static CCriticalSection cs_nTimeOffset;
-static int64_t nTimeOffset GUARDED_BY(cs_nTimeOffset) = 0;
+static int64_t nTimeOffset = 0;
+extern int64_t nNtpOffset;
+static int64_t nNodesOffset = std::numeric_limits<int64_t>::max();
+
+int64_t GetNodesOffset() {
+    return nNodesOffset;
+}
 
 /**
  * "Never go to sea with two chronometers; take one or three."
@@ -26,9 +30,20 @@ static int64_t nTimeOffset GUARDED_BY(cs_nTimeOffset) = 0;
  *  - Median of other nodes clocks
  *  - The user (asking the user to fix the system clock if the first two disagree)
  */
+
+static int64_t abs64(int64_t n)
+{
+    return (n >= 0 ? n : -n);
+}
+
 int64_t GetTimeOffset()
 {
     LOCK(cs_nTimeOffset);
+    
+    // If NTP and system clock are in agreement within 40 minutes, then use NTP.
+    if (abs64(nNtpOffset) < 40 * 60)
+        return nNtpOffset;
+
     return nTimeOffset;
 }
 
@@ -37,27 +52,22 @@ int64_t GetAdjustedTime()
     return GetTime() + GetTimeOffset();
 }
 
-static int64_t abs64(int64_t n)
-{
-    return (n >= 0 ? n : -n);
-}
-
-#define BITCOIN_TIMEDATA_MAX_SAMPLES 200
+#define DYNAMIC_TIMEDATA_MAX_SAMPLES 200
 
 void AddTimeData(const CNetAddr& ip, int64_t nOffsetSample)
 {
     LOCK(cs_nTimeOffset);
     // Ignore duplicates
     static std::set<CNetAddr> setKnown;
-    if (setKnown.size() == BITCOIN_TIMEDATA_MAX_SAMPLES)
+    if (setKnown.size() == DYNAMIC_TIMEDATA_MAX_SAMPLES)
         return;
     if (!setKnown.insert(ip).second)
         return;
 
     // Add data
-    static CMedianFilter<int64_t> vTimeOffsets(BITCOIN_TIMEDATA_MAX_SAMPLES, 0);
+    static CMedianFilter<int64_t> vTimeOffsets(DYNAMIC_TIMEDATA_MAX_SAMPLES, 0);
     vTimeOffsets.input(nOffsetSample);
-    LogPrint(BCLog::NET,"added time data, samples %d, offset %+d (%+d minutes)\n", vTimeOffsets.size(), nOffsetSample, nOffsetSample/60);
+    LogPrint("net","added time data, samples %d, offset %+d (%+d minutes)\n", vTimeOffsets.size(), nOffsetSample, nOffsetSample/60);
 
     // There is a known issue here (see issue #4521):
     //
@@ -81,7 +91,7 @@ void AddTimeData(const CNetAddr& ip, int64_t nOffsetSample)
         int64_t nMedian = vTimeOffsets.median();
         std::vector<int64_t> vSorted = vTimeOffsets.sorted();
         // Only let other nodes change our time by so much
-        if (abs64(nMedian) <= std::max<int64_t>(0, gArgs.GetArg("-maxtimeadjustment", DEFAULT_MAX_TIME_ADJUSTMENT)))
+        if (abs64(nMedian) <= std::max<int64_t>(0, GetArg("-maxtimeadjustment", DEFAULT_MAX_TIME_ADJUSTMENT)))
         {
             nTimeOffset = nMedian;
         }
@@ -101,20 +111,17 @@ void AddTimeData(const CNetAddr& ip, int64_t nOffsetSample)
                 if (!fMatch)
                 {
                     fDone = true;
-                    std::string strMessage = strprintf(_("Please check that your computer's date and time are correct! If your clock is wrong, %s will not work properly."), _(PACKAGE_NAME));
+                    std::string strMessage = _("Please check that your computer's date and time are correct! If your clock is wrong Dynamic will not work properly.");
                     SetMiscWarning(strMessage);
                     uiInterface.ThreadSafeMessageBox(strMessage, "", CClientUIInterface::MSG_WARNING);
                 }
             }
         }
-
-        if (LogAcceptCategory(BCLog::NET)) {
-            for (int64_t n : vSorted) {
-                LogPrint(BCLog::NET, "%+d  ", n); /* Continued */
-            }
-            LogPrint(BCLog::NET, "|  "); /* Continued */
-
-            LogPrint(BCLog::NET, "nTimeOffset = %+d  (%+d minutes)\n", nTimeOffset, nTimeOffset/60);
-        }
+        
+        for (int64_t n : vSorted)
+            LogPrint("net", "%+d  ", n);
+        LogPrint("net", "|  ");
+        
+        LogPrint("net", "nTimeOffset = %+d  (%+d minutes)\n", nTimeOffset, nTimeOffset/60);
     }
 }

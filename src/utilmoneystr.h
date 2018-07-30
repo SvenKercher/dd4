@@ -1,24 +1,23 @@
-// Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 /**
  * Money parsing/formatting utilities.
  */
-#ifndef BITCOIN_UTILMONEYSTR_H
-#define BITCOIN_UTILMONEYSTR_H
+#ifndef DYNAMIC_UTILMONEYSTR_H
+#define DYNAMIC_UTILMONEYSTR_H
+
+#include "amount.h"
 
 #include <stdint.h>
 #include <string>
 
-#include <amount.h>
-
-/* Do not use these functions to represent or parse monetary amounts to or from
- * JSON but use AmountFromValue and ValueFromAmount for that.
- */
 std::string FormatMoney(const CAmount& n);
 bool ParseMoney(const std::string& str, CAmount& nRet);
 bool ParseMoney(const char* pszIn, CAmount& nRet);
 
-#endif // BITCOIN_UTILMONEYSTR_H
+#endif // DYNAMIC_UTILMONEYSTR_H

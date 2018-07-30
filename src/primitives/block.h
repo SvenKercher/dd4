@@ -1,14 +1,16 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2017 The Bitcoin Core developers
+// Copyright (c) 2009-2015 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_PRIMITIVES_BLOCK_H
-#define BITCOIN_PRIMITIVES_BLOCK_H
+#ifndef DYNAMIC_PRIMITIVES_BLOCK_H
+#define DYNAMIC_PRIMITIVES_BLOCK_H
 
-#include <primitives/transaction.h>
-#include <serialize.h>
-#include <uint256.h>
+#include "hash.h"
+#include "serialize.h"
+#include "primitives/transaction.h"
+#include "uint256.h"
+#include "utilstrencodings.h"
 
 /** Nodes collect new transactions into a block, hash them into a hash tree,
  * and scan through nonce values to make the block's hash satisfy proof-of-work
@@ -36,7 +38,7 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+        inline void SerializationOp(Stream& s, Operation ser_action) {
         READWRITE(this->nVersion);
         READWRITE(hashPrevBlock);
         READWRITE(hashMerkleRoot);
@@ -60,8 +62,11 @@ public:
         return (nBits == 0);
     }
 
-    uint256 GetHash() const;
-
+    uint256 GetHash() const
+    {
+        return hash_Argon2d(BEGIN(nVersion), END(nNonce), 1);
+    }
+    
     int64_t GetBlockTime() const
     {
         return (int64_t)nTime;
@@ -73,9 +78,11 @@ class CBlock : public CBlockHeader
 {
 public:
     // network and disk
-    std::vector<CTransactionRef> vtx;
+    std::vector<CTransaction> vtx;
 
     // memory only
+    mutable CTxOut txoutDynode; // Dynode payment
+    mutable std::vector<CTxOut> voutSuperblock; // superblock payment
     mutable bool fChecked;
 
     CBlock()
@@ -86,14 +93,14 @@ public:
     CBlock(const CBlockHeader &header)
     {
         SetNull();
-        *(static_cast<CBlockHeader*>(this)) = header;
+        *((CBlockHeader*)this) = header;
     }
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
-        READWRITEAS(CBlockHeader, *this);
+        inline void SerializationOp(Stream& s, Operation ser_action) {
+        READWRITE(*(CBlockHeader*)this);
         READWRITE(vtx);
     }
 
@@ -101,6 +108,8 @@ public:
     {
         CBlockHeader::SetNull();
         vtx.clear();
+        txoutDynode = CTxOut();
+        voutSuperblock.clear();
         fChecked = false;
     }
 
@@ -119,6 +128,7 @@ public:
     std::string ToString() const;
 };
 
+
 /** Describes a place in the block chain to another node such that if the
  * other node doesn't have the same branch, it can find a recent common trunk.
  * The further back it is, the further before the fork it may be.
@@ -129,7 +139,10 @@ struct CBlockLocator
 
     CBlockLocator() {}
 
-    explicit CBlockLocator(const std::vector<uint256>& vHaveIn) : vHave(vHaveIn) {}
+    CBlockLocator(const std::vector<uint256>& vHaveIn)
+    {
+        vHave = vHaveIn;
+    }
 
     ADD_SERIALIZE_METHODS;
 
@@ -152,4 +165,4 @@ struct CBlockLocator
     }
 };
 
-#endif // BITCOIN_PRIMITIVES_BLOCK_H
+#endif // DYNAMIC_PRIMITIVES_BLOCK_H

@@ -1,15 +1,19 @@
-// Copyright (c) 2011-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <qt/sendcoinsentry.h>
-#include <qt/forms/ui_sendcoinsentry.h>
+#include "sendcoinsentry.h"
+#include "ui_sendcoinsentry.h"
 
-#include <qt/addressbookpage.h>
-#include <qt/addresstablemodel.h>
-#include <qt/guiutil.h>
-#include <qt/optionsmodel.h>
-#include <qt/platformstyle.h>
+#include "addressbookpage.h"
+#include "addresstablemodel.h"
+#include "guiutil.h"
+#include "optionsmodel.h"
+#include "platformstyle.h"
+#include "walletmodel.h"
 
 #include <QApplication>
 #include <QClipboard>
@@ -22,21 +26,26 @@ SendCoinsEntry::SendCoinsEntry(const PlatformStyle *_platformStyle, QWidget *par
 {
     ui->setupUi(this);
 
-    ui->addressBookButton->setIcon(platformStyle->SingleColorIcon(":/icons/address-book"));
-    ui->pasteButton->setIcon(platformStyle->SingleColorIcon(":/icons/editpaste"));
-    ui->deleteButton->setIcon(platformStyle->SingleColorIcon(":/icons/remove"));
-    ui->deleteButton_is->setIcon(platformStyle->SingleColorIcon(":/icons/remove"));
-    ui->deleteButton_s->setIcon(platformStyle->SingleColorIcon(":/icons/remove"));
-
     setCurrentWidget(ui->SendCoins);
 
     if (platformStyle->getUseExtraSpacing())
         ui->payToLayout->setSpacing(4);
+#if QT_VERSION >= 0x040700
     ui->addAsLabel->setPlaceholderText(tr("Enter a label for this address to add it to your address book"));
+#endif
 
-    // normal bitcoin address field
+    QString theme = GUIUtil::getThemeName();
+
+    // These icons are needed on Mac also!
+    ui->addressBookButton->setIcon(QIcon(":/icons/" + theme + "/address-book"));
+    ui->pasteButton->setIcon(QIcon(":/icons/" + theme + "/editpaste"));
+    ui->deleteButton->setIcon(QIcon(":/icons/" + theme + "/remove"));
+    ui->deleteButton_is->setIcon(QIcon(":/icons/" + theme + "/remove"));
+    ui->deleteButton_s->setIcon(QIcon(":/icons/" + theme + "/remove"));
+      
+    // normal dynamic address field
     GUIUtil::setupAddressWidget(ui->payTo, this);
-    // just a label for displaying bitcoin address(es)
+    // just a label for displaying dynamic address(es)
     ui->payTo_is->setFont(GUIUtil::fixedPitchFont());
 
     // Connect signals
@@ -45,7 +54,6 @@ SendCoinsEntry::SendCoinsEntry(const PlatformStyle *_platformStyle, QWidget *par
     connect(ui->deleteButton, SIGNAL(clicked()), this, SLOT(deleteClicked()));
     connect(ui->deleteButton_is, SIGNAL(clicked()), this, SLOT(deleteClicked()));
     connect(ui->deleteButton_s, SIGNAL(clicked()), this, SLOT(deleteClicked()));
-    connect(ui->useAvailableBalanceButton, SIGNAL(clicked()), this, SLOT(useAvailableBalanceClicked()));
 }
 
 SendCoinsEntry::~SendCoinsEntry()
@@ -106,13 +114,8 @@ void SendCoinsEntry::clear()
     ui->memoTextLabel_s->clear();
     ui->payAmount_s->clear();
 
-    // update the display unit, to not use the default ("BTC")
+    // update the display unit, to not use the default ("DYN")
     updateDisplayUnit();
-}
-
-void SendCoinsEntry::checkSubtractFeeFromAmount()
-{
-    ui->checkboxSubtractFeeFromAmount->setChecked(true);
 }
 
 void SendCoinsEntry::deleteClicked()
@@ -120,12 +123,7 @@ void SendCoinsEntry::deleteClicked()
     Q_EMIT removeEntry(this);
 }
 
-void SendCoinsEntry::useAvailableBalanceClicked()
-{
-    Q_EMIT useAvailableBalance(this);
-}
-
-bool SendCoinsEntry::validate(interfaces::Node& node)
+bool SendCoinsEntry::validate()
 {
     if (!model)
         return false;
@@ -156,7 +154,7 @@ bool SendCoinsEntry::validate(interfaces::Node& node)
     }
 
     // Reject dust outputs:
-    if (retval && GUIUtil::isDust(node, ui->payTo->text(), ui->payAmount->value())) {
+    if (retval && GUIUtil::isDust(ui->payTo->text(), ui->payAmount->value())) {
         ui->payAmount->setValid(false);
         retval = false;
     }
@@ -236,11 +234,6 @@ void SendCoinsEntry::setAddress(const QString &address)
     ui->payAmount->setFocus();
 }
 
-void SendCoinsEntry::setAmount(const CAmount &amount)
-{
-    ui->payAmount->setValue(amount);
-}
-
 bool SendCoinsEntry::isClear()
 {
     return ui->payTo->text().isEmpty() && ui->payTo_is->text().isEmpty() && ui->payTo_s->text().isEmpty();
@@ -276,4 +269,9 @@ bool SendCoinsEntry::updateLabel(const QString &address)
     }
 
     return false;
+}
+
+void SendCoinsEntry::setRemoveEnabled(bool enabled)
+{
+    ui->deleteButton->setEnabled(enabled);
 }

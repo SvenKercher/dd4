@@ -1,12 +1,17 @@
-// Copyright (c) 2015-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_HTTPRPC_H
-#define BITCOIN_HTTPRPC_H
+#ifndef DYNAMIC_HTTPRPC_H
+#define DYNAMIC_HTTPRPC_H
 
-#include <string>
 #include <map>
+#include <string>
+
+class HTTPRequest;
 
 /** Start HTTP RPC subsystem.
  * Precondition; HTTP and RPC has been started.
@@ -32,4 +37,4 @@ void InterruptREST();
  */
 void StopREST();
 
-#endif
+#endif // DYNAMIC_HTTPRPC_H

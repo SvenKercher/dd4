@@ -1,9 +1,12 @@
-// Copyright (c) 2011-2015 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_QT_EDITADDRESSDIALOG_H
-#define BITCOIN_QT_EDITADDRESSDIALOG_H
+#ifndef DYNAMIC_QT_EDITADDRESSDIALOG_H
+#define DYNAMIC_QT_EDITADDRESSDIALOG_H
 
 #include <QDialog>
 
@@ -25,12 +28,13 @@ class EditAddressDialog : public QDialog
 
 public:
     enum Mode {
+        NewReceivingAddress,
         NewSendingAddress,
         EditReceivingAddress,
         EditSendingAddress
     };
 
-    explicit EditAddressDialog(Mode mode, QWidget *parent = 0);
+    explicit EditAddressDialog(Mode mode, QWidget *parent);
     ~EditAddressDialog();
 
     void setModel(AddressTableModel *model);
@@ -45,9 +49,6 @@ public Q_SLOTS:
 private:
     bool saveCurrentRow();
 
-    /** Return a descriptive string when adding an already-existing address fails. */
-    QString getDuplicateAddressWarning() const;
-
     Ui::EditAddressDialog *ui;
     QDataWidgetMapper *mapper;
     Mode mode;
@@ -56,4 +57,4 @@ private:
     QString address;
 };
 
-#endif // BITCOIN_QT_EDITADDRESSDIALOG_H
+#endif // DYNAMIC_QT_EDITADDRESSDIALOG_H

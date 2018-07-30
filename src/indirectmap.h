@@ -1,9 +1,12 @@
-// Copyright (c) 2016 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_INDIRECTMAP_H
-#define BITCOIN_INDIRECTMAP_H
+#ifndef DYNAMIC_INDIRECTMAP_H
+#define DYNAMIC_INDIRECTMAP_H
 
 template <class T>
 struct DereferencingComparator { bool operator()(const T a, const T b) const { return *a < *b; } };
@@ -53,4 +56,4 @@ public:
     const_iterator cend() const     { return m.cend(); }
 };
 
-#endif // BITCOIN_INDIRECTMAP_H
+#endif // DYNAMIC_INDIRECTMAP_H

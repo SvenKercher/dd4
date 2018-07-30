@@ -1,10 +1,14 @@
-// Copyright (c) 2014-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <qt/networkstyle.h>
+#include "networkstyle.h"
 
-#include <qt/guiconstants.h>
+#include "guiconstants.h"
+#include "guiutil.h"
 
 #include <QApplication>
 
@@ -16,63 +20,80 @@ static const struct {
     const char *titleAddText;
 } network_styles[] = {
     {"main", QAPP_APP_NAME_DEFAULT, 0, 0, ""},
-    {"test", QAPP_APP_NAME_TESTNET, 70, 30, QT_TRANSLATE_NOOP("SplashScreen", "[testnet]")},
+    {"test", QAPP_APP_NAME_TESTNET, 190, 20, QT_TRANSLATE_NOOP("SplashScreen", "[testnet]")},
     {"regtest", QAPP_APP_NAME_TESTNET, 160, 30, "[regtest]"}
 };
 static const unsigned network_styles_count = sizeof(network_styles)/sizeof(*network_styles);
+
+void NetworkStyle::rotateColors(QImage& img, const int iconColorHueShift, const int iconColorSaturationReduction) {
+    int h,s,l,a;
+
+    // traverse though lines
+    for(int y=0;y<img.height();y++)
+    {
+        QRgb *scL = reinterpret_cast< QRgb *>( img.scanLine( y ) );
+
+        // loop through pixels
+        for(int x=0;x<img.width();x++)
+        {
+            // preserve alpha because QColor::getHsl doesen't return the alpha value
+            a = qAlpha(scL[x]);
+            QColor col(scL[x]);
+
+            // get hue value
+            col.getHsl(&h,&s,&l);
+
+            // rotate color on RGB color circle
+            // 70° should end up with the typical "testnet" green
+            h+=iconColorHueShift;
+
+            // change saturation value
+            s -= iconColorSaturationReduction;
+            s = std::max(s, 0);
+
+            col.setHsl(h,s,l,a);
+
+            // set the pixel
+            scL[x] = col.rgba();
+        }
+    }
+}
 
 // titleAddText needs to be const char* for tr()
 NetworkStyle::NetworkStyle(const QString &_appName, const int iconColorHueShift, const int iconColorSaturationReduction, const char *_titleAddText):
     appName(_appName),
     titleAddText(qApp->translate("SplashScreen", _titleAddText))
 {
+    // Allow for separate UI settings for testnets
+    QApplication::setApplicationName(appName);
+    // Grab theme from settings
+    QString theme = GUIUtil::getThemeName();
     // load pixmap
-    QPixmap pixmap(":/icons/bitcoin");
+    QPixmap appIconPixmap(":/icons/dynamic");
+    QPixmap splashImagePixmap(":/images/" + theme + "/splash");
 
     if(iconColorHueShift != 0 && iconColorSaturationReduction != 0)
     {
         // generate QImage from QPixmap
-        QImage img = pixmap.toImage();
+        QImage appIconImg = appIconPixmap.toImage();
+        QImage splashImageImg = splashImagePixmap.toImage();
 
-        int h,s,l,a;
-
-        // traverse though lines
-        for(int y=0;y<img.height();y++)
-        {
-            QRgb *scL = reinterpret_cast< QRgb *>( img.scanLine( y ) );
-
-            // loop through pixels
-            for(int x=0;x<img.width();x++)
-            {
-                // preserve alpha because QColor::getHsl doesn't return the alpha value
-                a = qAlpha(scL[x]);
-                QColor col(scL[x]);
-
-                // get hue value
-                col.getHsl(&h,&s,&l);
-
-                // rotate color on RGB color circle
-                // 70° should end up with the typical "testnet" green
-                h+=iconColorHueShift;
-
-                // change saturation value
-                if(s>iconColorSaturationReduction)
-                {
-                    s -= iconColorSaturationReduction;
-                }
-                col.setHsl(h,s,l,a);
-
-                // set the pixel
-                scL[x] = col.rgba();
-            }
-        }
+        rotateColors(appIconImg, iconColorHueShift, iconColorSaturationReduction);
+        rotateColors(splashImageImg, iconColorHueShift, iconColorSaturationReduction);
 
         //convert back to QPixmap
-        pixmap.convertFromImage(img);
+#if QT_VERSION >= 0x040700
+        appIconPixmap.convertFromImage(appIconImg);
+        splashImagePixmap.convertFromImage(splashImageImg);
+#else
+        appIconPixmap = QPixmap::fromImage(appIconImg);
+        splashImagePixmap = QPixmap::fromImage(splashImageImg);
+#endif
     }
 
-    appIcon             = QIcon(pixmap);
-    trayAndWindowIcon   = QIcon(pixmap.scaled(QSize(256,256)));
+    appIcon             = QIcon(appIconPixmap);
+    trayAndWindowIcon   = QIcon(appIconPixmap.scaled(QSize(256,256)));
+    splashImage         = splashImagePixmap;
 }
 
 const NetworkStyle *NetworkStyle::instantiate(const QString &networkId)

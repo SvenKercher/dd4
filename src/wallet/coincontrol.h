@@ -1,48 +1,47 @@
-// Copyright (c) 2011-2017 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2016-2018 Duality Blockchain Solutions Developers
+// Copyright (c) 2014-2018 The Dash Core Developers
+// Copyright (c) 2009-2018 The Bitcoin Developers
+// Copyright (c) 2009-2018 Satoshi Nakamoto
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_WALLET_COINCONTROL_H
-#define BITCOIN_WALLET_COINCONTROL_H
+#ifndef DYNAMIC_COINCONTROL_H
+#define DYNAMIC_COINCONTROL_H
 
-#include <policy/feerate.h>
-#include <policy/fees.h>
-#include <primitives/transaction.h>
-#include <wallet/wallet.h>
-
-#include <boost/optional.hpp>
+#include "primitives/transaction.h"
 
 /** Coin Control Features. */
 class CCoinControl
 {
 public:
-    //! Custom change destination, if not set an address is generated
     CTxDestination destChange;
-    //! Override the default change type if set, ignored if destChange is set
-    boost::optional<OutputType> m_change_type;
+    bool fUsePrivateSend;
+    bool fUseInstantSend;
     //! If false, allows unselected inputs, but requires all selected inputs be used
     bool fAllowOtherInputs;
-    //! Includes watch only addresses which are solvable
+    //! Includes watch only addresses which match the ISMINE_WATCH_SOLVABLE criteria
     bool fAllowWatchOnly;
-    //! Override automatic min/max checks on fee, m_feerate must be set if true
-    bool fOverrideFeeRate;
-    //! Override the wallet's m_pay_tx_fee if set
-    boost::optional<CFeeRate> m_feerate;
-    //! Override the default confirmation target if set
-    boost::optional<unsigned int> m_confirm_target;
-    //! Override the wallet's m_signal_rbf if set
-    boost::optional<bool> m_signal_bip125_rbf;
-    //! Avoid partial use of funds sent to a given address
-    bool m_avoid_partial_spends;
-    //! Fee estimation mode to control arguments to estimateSmartFee
-    FeeEstimateMode m_fee_mode;
+    //! Minimum absolute fee (not per kilobyte)
+    CAmount nMinimumTotalFee;
+    //! Override the default confirmation target, 0 = use default
+    int nConfirmTarget;
 
     CCoinControl()
     {
         SetNull();
     }
 
-    void SetNull();
+    void SetNull()
+    {
+        destChange = CNoDestination();
+        fAllowOtherInputs = false;
+        fAllowWatchOnly = false;
+        setSelected.clear();
+        fUseInstantSend = false;
+        fUsePrivateSend = true;
+        nMinimumTotalFee = 0;
+        nConfirmTarget = 0;
+    }
 
     bool HasSelected() const
     {
@@ -78,4 +77,4 @@ private:
     std::set<COutPoint> setSelected;
 };
 
-#endif // BITCOIN_WALLET_COINCONTROL_H
+#endif // DYNAMIC_COINCONTROL_H
